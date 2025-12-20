@@ -5,6 +5,10 @@ const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const farmRoutes = require('./routes/farm');
 const systemRoutes = require('./routes/system');
+const warningRoutes = require('./routes/warning');
+const homepageRoutes = require('./routes/homepage');
+const principalRoutes = require('./routes/principal');
+const cropRoutes = require('./routes/crop');
 
 dotenv.config();
 
@@ -21,6 +25,10 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/farm', farmRoutes);
 app.use('/api/system', systemRoutes);
+app.use('/api/warning', warningRoutes);
+app.use('/api/homepage', homepageRoutes);
+app.use('/api/principal', principalRoutes);
+app.use('/api/crop', cropRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {

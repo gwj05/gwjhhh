@@ -33,6 +33,14 @@ const Sidebar = () => {
       roles: [1, 2, 3] // 所有角色可见
     },
     {
+      key: 'homepage',
+      title: '系统首页',
+      icon: '📊',
+      path: '/homepage',
+      children: null,
+      roles: [1, 2, 3] // 所有角色可见
+    },
+    {
       key: 'overview',
       title: '系统概览',
       icon: '📊',

@@ -3,6 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import HomePage from './pages/HomePage'
+import FarmList from './pages/FarmList'
+import FarmDetail from './pages/FarmDetail'
+import FarmDetailEntry from './pages/FarmDetailEntry'
+import FarmManager from './pages/FarmManager'
+import CropList from './pages/CropList'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import MainLayout from './components/MainLayout'
@@ -24,11 +30,13 @@ function App() {
           >
             <Route index element={<Navigate to="/home" replace />} />
             <Route path="home" element={<Dashboard />} />
+            <Route path="homepage" element={<HomePage />} />
             <Route path="overview" element={<div>系统概览页面（待开发）</div>} />
-            <Route path="farm/list" element={<div>农场列表页面（待开发）</div>} />
-            <Route path="farm/detail" element={<div>农场详情页面（待开发）</div>} />
-            <Route path="farm/manager" element={<div>负责人管理页面（待开发）</div>} />
-            <Route path="crop/list" element={<div>作物列表页面（待开发）</div>} />
+            <Route path="farm/list" element={<FarmList />} />
+            <Route path="farm/detail" element={<FarmDetailEntry />} />
+            <Route path="farm/detail/:id" element={<FarmDetail />} />
+            <Route path="farm/manager" element={<FarmManager />} />
+            <Route path="crop/list" element={<CropList />} />
             <Route path="crop/area" element={<div>种植区域管理页面（待开发）</div>} />
             <Route path="crop/cycle" element={<div>生长周期记录页面（待开发）</div>} />
             <Route path="material/list" element={<div>农资列表页面（待开发）</div>} />
