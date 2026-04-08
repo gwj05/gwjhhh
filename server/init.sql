@@ -38,9 +38,19 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE TABLE IF NOT EXISTS farm (
     farm_id INT AUTO_INCREMENT COMMENT '农场编号（主键），自增',
     farm_name VARCHAR(50) NOT NULL COMMENT '农场名称，如"XX生态农场"',
+    farm_code VARCHAR(32) COMMENT '农场编码（业务唯一）',
     address VARCHAR(100) NOT NULL COMMENT '农场详细地址，如"XX市XX区XX村"',
     principal_id INT NOT NULL COMMENT '负责人编号（外键），关联用户表user_id',
     phone VARCHAR(11) NOT NULL COMMENT '农场联系电话',
+    farm_level VARCHAR(20) DEFAULT 'standard' COMMENT '农场等级：standard/demo/organic',
+    longitude DECIMAL(10,6) COMMENT '农场经度',
+    latitude DECIMAL(10,6) COMMENT '农场纬度',
+    total_area DECIMAL(12,2) DEFAULT 0 COMMENT '农场总面积（亩）',
+    region_count INT DEFAULT 0 COMMENT '种植区域数量（缓存）',
+    active_crop_count INT DEFAULT 0 COMMENT '在种作物数量（缓存）',
+    irrigation_mode VARCHAR(30) DEFAULT 'auto_manual' COMMENT '灌溉模式',
+    soil_quality_level VARCHAR(20) DEFAULT 'B' COMMENT '土壤等级：A/B/C',
+    remark VARCHAR(255) DEFAULT NULL COMMENT '备注信息',
     PRIMARY KEY (farm_id) COMMENT '主键约束：农场编号唯一',
     -- 外键约束：关联用户表，禁止删除农场负责人，用户编号更新时同步
     FOREIGN KEY (principal_id) REFERENCES user(user_id) 

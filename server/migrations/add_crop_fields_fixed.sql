@@ -10,11 +10,9 @@ USE smart_agriculture;
 -- 1. 添加作物名称
 ALTER TABLE crop 
 ADD COLUMN IF NOT EXISTS crop_name VARCHAR(50) COMMENT '作物名称（必填）' AFTER crop_id;
-
 -- 2. 添加作物类型
 ALTER TABLE crop 
 ADD COLUMN IF NOT EXISTS crop_category VARCHAR(20) COMMENT '作物类型：果蔬/粮食/经济作物' AFTER crop_type;
-
 -- 3. 添加生长周期
 ALTER TABLE crop 
 ADD COLUMN IF NOT EXISTS growth_cycle INT COMMENT '生长周期（天数）' AFTER sow_time;

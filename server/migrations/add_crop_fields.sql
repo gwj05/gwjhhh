@@ -8,7 +8,6 @@ USE smart_agriculture;
 
 ALTER TABLE crop 
 ADD COLUMN crop_name VARCHAR(50) COMMENT '作物名称（必填）' AFTER crop_id;
-
 ALTER TABLE crop 
 ADD COLUMN crop_category VARCHAR(20) COMMENT '作物类型：果蔬/粮食/经济作物' AFTER crop_type;
 

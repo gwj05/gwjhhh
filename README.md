@@ -46,7 +46,6 @@ demo4/
 ```
 
 ## 安装和运行
-
 ### 1. 安装依赖
 
 ```bash
@@ -97,7 +96,7 @@ npm run dev
 
 这将同时启动：
 - 后端服务器：http://localhost:5000
-- 前端开发服务器：http://localhost:3000
+- 前端开发服务器：http://localhost:3001
 
 ## 功能特性
 

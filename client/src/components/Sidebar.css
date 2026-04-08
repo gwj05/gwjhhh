@@ -52,6 +52,16 @@
   font-weight: 500;
 }
 
+.sidebar-nav-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #f56c6c;
+  flex-shrink: 0;
+  margin-right: 6px;
+  box-shadow: 0 0 0 2px rgba(245, 108, 108, 0.25);
+}
+
 .menu-arrow {
   font-size: 10px;
   transition: transform 0.3s;

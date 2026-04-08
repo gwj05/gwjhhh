@@ -9,6 +9,26 @@ import FarmDetail from './pages/FarmDetail'
 import FarmDetailEntry from './pages/FarmDetailEntry'
 import FarmManager from './pages/FarmManager'
 import CropList from './pages/CropList'
+import CropArea from './pages/CropArea'
+import CropCycleList from './pages/CropCycleList'
+import CropCycleDetail from './pages/CropCycleDetail'
+import MaterialList from './pages/MaterialList'
+import MaterialWarning from './pages/MaterialWarning'
+import MaterialPurchase from './pages/MaterialPurchase'
+import StockFlow from './pages/StockFlow'
+import OperationRecordQuery from './pages/OperationRecordQuery'
+import FertilizeRecord from './pages/FertilizeRecord'
+import IrrigateRecord from './pages/IrrigateRecord'
+import MonitorRealtime from './pages/MonitorRealtime'
+import MonitorHistory from './pages/MonitorHistory'
+import MonitorReport from './pages/MonitorReport'
+import WarningDevice from './pages/WarningDevice'
+import WarningException from './pages/WarningException'
+import WarningPush from './pages/WarningPush'
+import WarningStats from './pages/WarningStats'
+import SystemUserManagement from './pages/SystemUserManagement'
+import SystemRoleManagement from './pages/SystemRoleManagement'
+import SystemPermissionConfig from './pages/SystemPermissionConfig'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import MainLayout from './components/MainLayout'
@@ -37,24 +57,26 @@ function App() {
             <Route path="farm/detail/:id" element={<FarmDetail />} />
             <Route path="farm/manager" element={<FarmManager />} />
             <Route path="crop/list" element={<CropList />} />
-            <Route path="crop/area" element={<div>种植区域管理页面（待开发）</div>} />
-            <Route path="crop/cycle" element={<div>生长周期记录页面（待开发）</div>} />
-            <Route path="material/list" element={<div>农资列表页面（待开发）</div>} />
-            <Route path="material/warning" element={<div>库存预警页面（待开发）</div>} />
-            <Route path="material/purchase" element={<div>采购记录页面（待开发）</div>} />
-            <Route path="operation/query" element={<div>操作记录查询页面（待开发）</div>} />
-            <Route path="operation/fertilize" element={<div>施肥记录页面（待开发）</div>} />
-            <Route path="operation/irrigate" element={<div>灌溉记录页面（待开发）</div>} />
-            <Route path="monitor/realtime" element={<div>实时数据页面（待开发）</div>} />
-            <Route path="monitor/history" element={<div>历史数据页面（待开发）</div>} />
-            <Route path="monitor/report" element={<div>数据报表页面（待开发）</div>} />
-            <Route path="warning/device" element={<div>监控设备管理页面（待开发）</div>} />
-            <Route path="warning/exception" element={<div>作物异常记录页面（待开发）</div>} />
-            <Route path="warning/push" element={<div>异常推送记录页面（待开发）</div>} />
-            <Route path="warning/status" element={<div>处理状态统计页面（待开发）</div>} />
-            <Route path="system/user" element={<div>用户管理页面（待开发）</div>} />
-            <Route path="system/role" element={<div>角色管理页面（待开发）</div>} />
-            <Route path="system/permission" element={<div>权限配置页面（待开发）</div>} />
+            <Route path="crop/area" element={<CropArea />} />
+            <Route path="crop/cycle" element={<CropCycleList />} />
+            <Route path="crop/cycle/detail/:cropId" element={<CropCycleDetail />} />
+            <Route path="material/list" element={<MaterialList />} />
+            <Route path="material/warning" element={<MaterialWarning />} />
+            <Route path="material/purchase" element={<MaterialPurchase />} />
+            <Route path="material/stock-flow" element={<StockFlow />} />
+            <Route path="operation/query" element={<OperationRecordQuery />} />
+            <Route path="operation/fertilize" element={<FertilizeRecord />} />
+            <Route path="operation/irrigate" element={<IrrigateRecord />} />
+            <Route path="monitor/realtime" element={<MonitorRealtime />} />
+            <Route path="monitor/history" element={<MonitorHistory />} />
+            <Route path="monitor/report" element={<MonitorReport />} />
+            <Route path="warning/device" element={<WarningDevice />} />
+            <Route path="warning/exception" element={<WarningException />} />
+            <Route path="warning/push" element={<WarningPush />} />
+            <Route path="warning/status" element={<WarningStats />} />
+            <Route path="system/user" element={<SystemUserManagement />} />
+            <Route path="system/role" element={<SystemRoleManagement />} />
+            <Route path="system/permission" element={<SystemPermissionConfig />} />
             <Route path="profile" element={<div>个人信息页面（待开发）</div>} />
             <Route path="password" element={<div>修改密码页面（待开发）</div>} />
           </Route>

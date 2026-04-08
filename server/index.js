@@ -9,6 +9,9 @@ const warningRoutes = require('./routes/warning');
 const homepageRoutes = require('./routes/homepage');
 const principalRoutes = require('./routes/principal');
 const cropRoutes = require('./routes/crop');
+const materialRoutes = require('./routes/material');
+const operationRoutes = require('./routes/operation');
+const environmentRoutes = require('./routes/environment');
 
 dotenv.config();
 
@@ -29,6 +32,9 @@ app.use('/api/warning', warningRoutes);
 app.use('/api/homepage', homepageRoutes);
 app.use('/api/principal', principalRoutes);
 app.use('/api/crop', cropRoutes);
+app.use('/api/material', materialRoutes);
+app.use('/api/operation', operationRoutes);
+app.use('/api/environment', environmentRoutes);
 
 // 健康检查
 app.get('/api/health', (req, res) => {

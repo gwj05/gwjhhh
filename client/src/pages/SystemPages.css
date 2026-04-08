@@ -1,0 +1,26 @@
+.system-page { padding: 16px; }
+.system-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+.system-sub { color: #909399; font-size: 13px; margin: 0 0 12px; }
+.system-card { background: #fff; border: 1px solid #ebeef5; border-radius: 10px; padding: 12px; }
+.system-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 12px; }
+.system-filter .field { min-width: 160px; }
+.system-filter label { display: block; margin-bottom: 4px; color: #606266; font-size: 12px; font-weight: 600; }
+.system-filter input, .system-filter select { width: 100%; border: 1px solid #dcdfe6; border-radius: 8px; padding: 8px 10px; min-height: 36px; }
+.system-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.system-table th, .system-table td { border-bottom: 1px solid #f0f2f5; padding: 10px; text-align: left; vertical-align: middle; }
+.system-table th { color: #606266; font-weight: 700; background: #fafafa; }
+.system-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sys-btn { border-radius: 8px; padding: 6px 12px; border: 1px solid #dcdfe6; background: #fff; cursor: pointer; }
+.sys-btn.primary { background: #409eff; border-color: #409eff; color: #fff; }
+.sys-btn.danger { border-color: #fde2e2; background: #fef0f0; color: #f56c6c; }
+.sys-pagebar { margin-top: 12px; display: flex; gap: 10px; align-items: center; color: #606266; }
+.sys-modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 2100; display: flex; align-items: center; justify-content: center; padding: 16px; }
+.sys-modal { width: 100%; max-width: 520px; background: #fff; border-radius: 12px; padding: 16px; }
+.sys-form { display: grid; gap: 10px; }
+.sys-form label { display: block; margin-bottom: 4px; color: #606266; font-size: 13px; font-weight: 600; }
+.sys-form input, .sys-form select { width: 100%; border: 1px solid #dcdfe6; border-radius: 8px; padding: 8px 10px; }
+.sys-roles-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap: 12px; }
+.sys-role-card { border: 1px solid #ebeef5; border-radius: 10px; padding: 12px; background: #fff; }
+.sys-role-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: #303133; }
+.sys-kv { font-size: 13px; color: #606266; line-height: 1.7; }
+.sys-toast { position: fixed; right: 20px; top: 72px; z-index: 2200; background: #fff; border: 1px solid #dcdfe6; border-radius: 10px; padding: 10px 14px; box-shadow: 0 6px 18px rgba(0,0,0,.12); }

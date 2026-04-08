@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import './FarmDetail.css'
-
 const tabs = [
   { key: 'base', label: '基础信息' },
   { key: 'crop', label: '关联作物' },
@@ -12,11 +11,10 @@ const tabs = [
   { key: 'health', label: '作物健康度' },
   { key: 'advice', label: '智能建议' }
 ]
-
 const FarmDetail = () => {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const { user, switchGlobalFarm } = useAuth()
   const [activeTab, setActiveTab] = useState('base')
   const [detail, setDetail] = useState(null)
   const [overview, setOverview] = useState(null)
@@ -27,7 +25,6 @@ const FarmDetail = () => {
   const [devices, setDevices] = useState([])
   const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState(null)
-  
   // 农场切换相关状态
   const [availableFarms, setAvailableFarms] = useState([])
   const [showFarmPanel, setShowFarmPanel] = useState(false)
@@ -42,7 +39,6 @@ const FarmDetail = () => {
   const farmPanelRef = useRef(null)
   const moreMenuRef = useRef(null)
   const backMenuRef = useRef(null)
-  
   // 最近访问记录（localStorage）
   const getRecentFarms = useCallback(() => {
     try {
@@ -155,6 +151,9 @@ const FarmDetail = () => {
       farmName: farmName || targetFarm.farm_name,
       status: targetFarm.status || 'normal'
     })
+
+    // 写入全局农场上下文，供全系统请求默认过滤
+    switchGlobalFarm(farmId, farmName || targetFarm.farm_name)
     
     // 淡出动画
     setTimeout(() => {
@@ -167,7 +166,7 @@ const FarmDetail = () => {
       setEnvHistory7d([])
       navigate(`/farm/detail/${farmId}`, { replace: true })
     }, 200)
-  }, [id, navigate, availableFarms, addRecentFarm])
+  }, [id, navigate, availableFarms, addRecentFarm, switchGlobalFarm])
 
   // 双击切换
   const handleDoubleClick = useCallback((farmId, farmName) => {
@@ -349,6 +348,14 @@ const FarmDetail = () => {
     fetchDevices()
     fetchAvailableFarms()
   }, [fetchDetail, fetchEnvHistory, fetchCrops, fetchDevices, fetchAvailableFarms])
+
+  // 管理员直接进入某农场详情时，将该农场同步为全局农场
+  useEffect(() => {
+    if (user?.role_id !== 1) return
+    if (detail?.farm_id && detail?.farm_name) {
+      switchGlobalFarm(detail.farm_id, detail.farm_name)
+    }
+  }, [user?.role_id, detail?.farm_id, detail?.farm_name, switchGlobalFarm])
 
   // 单独处理最近访问记录（只在id变化时记录）
   useEffect(() => {

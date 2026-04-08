@@ -6,7 +6,6 @@ const authenticateToken = require('../middleware/auth');
 // ---------- 工具：创建时间字段兼容 ----------
 // 若无 created_at，就用 farm_id 近似创建时间
 const createdField = 'f.farm_id';
-
 // 获取农场列表（支持多条件查询、排序和状态计算，简化SQL避免错误）
 router.get('/list', authenticateToken, async (req, res) => {
   try {
@@ -21,11 +20,9 @@ router.get('/list', authenticateToken, async (req, res) => {
       sortField = 'farm_name',
       sortOrder = 'asc'
     } = req.query;
-
     const offset = (page - 1) * pageSize;
     const roleId = req.user.role_id;
     const farmId = req.user.farm_id;
-
     // 排序字段白名单
     const sortFieldMap = {
       farm_name: 'f.farm_name',
@@ -33,7 +30,6 @@ router.get('/list', authenticateToken, async (req, res) => {
     };
     const orderByField = sortFieldMap[sortField] || sortFieldMap.farm_name;
     const orderByDirection = sortOrder === 'desc' ? 'DESC' : 'ASC';
-
     // 基础where（只在 farm 和 user 上，避免复杂多表join问题）
     let whereSql = 'WHERE 1=1';
     const whereParams = [];
@@ -68,8 +64,13 @@ router.get('/list', authenticateToken, async (req, res) => {
       SELECT 
         f.farm_id,
         f.farm_name,
+        f.farm_code,
+        f.farm_level,
         f.address,
         f.phone,
+        f.total_area,
+        f.region_count,
+        f.active_crop_count,
         ${createdField} AS created_at,
         u.user_id AS principal_id,
         u.real_name AS principal_name
@@ -349,7 +350,20 @@ router.get('/principals', authenticateToken, async (req, res) => {
 // 新增农场（仅超级管理员和农场管理员）
 router.post('/create', authenticateToken, async (req, res) => {
   try {
-    const { farm_name, address, principal_id, phone, longitude, latitude } = req.body;
+    const {
+      farm_name,
+      farm_code,
+      address,
+      principal_id,
+      phone,
+      longitude,
+      latitude,
+      farm_level,
+      total_area,
+      irrigation_mode,
+      soil_quality_level,
+      remark
+    } = req.body;
     const roleId = req.user.role_id;
 
     // 操作权限：仅超级管理员和农场管理员可创建
@@ -379,8 +393,23 @@ router.post('/create', authenticateToken, async (req, res) => {
     }
 
     const [result] = await pool.execute(
-      'INSERT INTO farm (farm_name, address, principal_id, phone, longitude, latitude) VALUES (?, ?, ?, ?, ?, ?)',
-      [farm_name, address || '', principal_id || null, phone || '', longitude || null, latitude || null]
+      `INSERT INTO farm
+       (farm_name, farm_code, address, principal_id, phone, longitude, latitude, farm_level, total_area, irrigation_mode, soil_quality_level, remark)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        farm_name,
+        farm_code || null,
+        address || '',
+        principal_id || null,
+        phone || '',
+        longitude || null,
+        latitude || null,
+        farm_level || 'standard',
+        total_area || 0,
+        irrigation_mode || 'auto_manual',
+        soil_quality_level || 'B',
+        remark || null
+      ]
     );
 
     res.status(201).json({
@@ -397,7 +426,20 @@ router.post('/create', authenticateToken, async (req, res) => {
 router.put('/update/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { farm_name, address, principal_id, phone, longitude, latitude } = req.body;
+    const {
+      farm_name,
+      farm_code,
+      address,
+      principal_id,
+      phone,
+      longitude,
+      latitude,
+      farm_level,
+      total_area,
+      irrigation_mode,
+      soil_quality_level,
+      remark
+    } = req.body;
     const roleId = req.user.role_id;
     const farmId = req.user.farm_id;
 
@@ -411,8 +453,25 @@ router.put('/update/:id', authenticateToken, async (req, res) => {
     }
 
     const [result] = await pool.execute(
-      'UPDATE farm SET farm_name=?, address=?, principal_id=?, phone=?, longitude=?, latitude=? WHERE farm_id=?',
-      [farm_name, address || '', principal_id || null, phone || '', longitude || null, latitude || null, id]
+      `UPDATE farm
+       SET farm_name=?, farm_code=?, address=?, principal_id=?, phone=?, longitude=?, latitude=?,
+           farm_level=?, total_area=?, irrigation_mode=?, soil_quality_level=?, remark=?
+       WHERE farm_id=?`,
+      [
+        farm_name,
+        farm_code || null,
+        address || '',
+        principal_id || null,
+        phone || '',
+        longitude || null,
+        latitude || null,
+        farm_level || 'standard',
+        total_area || 0,
+        irrigation_mode || 'auto_manual',
+        soil_quality_level || 'B',
+        remark || null,
+        id
+      ]
     );
 
     if (result.affectedRows === 0) {

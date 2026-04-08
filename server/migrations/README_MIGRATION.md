@@ -1,9 +1,6 @@
 # 数据库迁移执行说明
-
 ## 作物管理模块数据库字段扩展迁移
-
 ### 方法一：使用 MySQL 命令行（推荐）
-
 #### 步骤 1：打开 MySQL 命令行
 ```bash
 # Windows (在命令提示符或PowerShell中)
@@ -12,7 +9,6 @@ mysql -u root -p
 # 或者如果MySQL在系统PATH中
 mysql -h localhost -u root -p
 ```
-
 #### 步骤 2：输入数据库密码
 ```
 Enter password: [输入你的MySQL密码，默认可能是 Gwj@147]
@@ -24,7 +20,6 @@ Enter password: [输入你的MySQL密码，默认可能是 Gwj@147]
 # 在Windows PowerShell中：
 cd D:\09code\demo4
 ```
-
 #### 步骤 4：执行迁移文件
 ```sql
 -- 方式1：使用 source 命令（需要先切换到项目目录）
@@ -41,12 +36,6 @@ source server/migrations/add_crop_fields.sql
 - 文件路径使用正斜杠 `/` 或双反斜杠 `\\`
 
 如果 `source` 命令不工作，可以使用方式2。
-
----
-
-### 方法二：使用 MySQL Workbench（图形界面）
-
-#### 步骤 1：打开 MySQL Workbench
 1. 启动 MySQL Workbench
 2. 连接到你的数据库服务器（localhost）
 

@@ -2,19 +2,20 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
+import { GLOBAL_FARM_CHANGED_EVENT } from '../utils/globalFarm'
 import './TopBar.css'
-
 const TopBar = () => {
-  const { user, logout } = useAuth()
+  const { user, logout, currentFarmId, currentFarmName } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [breadcrumbs, setBreadcrumbs] = useState([])
-
+  const [farmToast, setFarmToast] = useState('')
   // 根据路径生成面包屑
   useEffect(() => {
     const pathMap = {
       '/home': ['首页'],
+      '/homepage': ['系统首页'],
       '/overview': ['系统概览'],
       '/farm/list': ['农场管理', '农场列表'],
       '/farm/detail': ['农场管理', '农场详情'],
@@ -79,6 +80,21 @@ const TopBar = () => {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showUserMenu])
 
+  useEffect(() => {
+    let timer = null
+    const onFarmChanged = (e) => {
+      const name = e.detail?.farm_name || (e.detail?.farm_id ? `农场#${e.detail.farm_id}` : '全部农场')
+      setFarmToast(`已切换到 ${name}`)
+      if (timer) window.clearTimeout(timer)
+      timer = window.setTimeout(() => setFarmToast(''), 2200)
+    }
+    window.addEventListener(GLOBAL_FARM_CHANGED_EVENT, onFarmChanged)
+    return () => {
+      window.removeEventListener(GLOBAL_FARM_CHANGED_EVENT, onFarmChanged)
+      if (timer) window.clearTimeout(timer)
+    }
+  }, [])
+
   if (!user) return null
 
   return (
@@ -97,6 +113,14 @@ const TopBar = () => {
               </span>
             </span>
           ))}
+        </div>
+        <div className="global-farm-indicator">
+          当前农场：
+          <strong>
+            {user.role_id === 1
+              ? (currentFarmName || (currentFarmId ? `农场#${currentFarmId}` : '全部农场'))
+              : (currentFarmName || (user.farm_id ? `农场#${user.farm_id}` : '我的农场'))}
+          </strong>
         </div>
       </div>
       <div className="topbar-right">
@@ -136,6 +160,7 @@ const TopBar = () => {
           )}
         </div>
       </div>
+      {farmToast ? <div className="farm-switch-toast">{farmToast}</div> : null}
     </div>
   )
 }

@@ -1,0 +1,62 @@
+.material-purchase-page { padding: 16px; }
+.purchase-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.purchase-hint { color: #909399; font-size: 13px; margin: 0 0 12px; line-height: 1.5; }
+.purchase-hint strong { color: #606266; font-weight: 600; }
+.stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px; }
+.stat-card { background: #fff; border: 1px solid #ebeef5; border-radius: 10px; padding: 12px; }
+.stat-card.warn { background: #fffaf0; border-color: #fde8c3; }
+.stat-card .label { color: #909399; font-size: 13px; }
+.stat-card .value { margin-top: 6px; font-size: 28px; font-weight: 700; }
+
+.filter-card, .table-card { background: #fff; border: 1px solid #ebeef5; border-radius: 10px; padding: 12px; }
+.filter-card { margin-bottom: 12px; }
+.filter-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
+.filter-item { min-width: 200px; flex: 1 1 200px; }
+.filter-item label { display: block; margin-bottom: 6px; color: #606266; font-size: 13px; font-weight: 600; }
+.filter-item input, .filter-item select { width: 100%; border: 1px solid #dcdfe6; border-radius: 8px; padding: 10px 12px; min-height: 40px; }
+.filter-actions { margin-left: auto; }
+
+.purchase-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.purchase-table th, .purchase-table td { border-bottom: 1px solid #f0f2f5; padding: 10px; text-align: left; vertical-align: top; }
+.purchase-table th { color: #606266; font-weight: 700; }
+
+.tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.tag-normal { background: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; }
+.tag-warn { background: #fff7e6; color: #e6a23c; border: 1px solid #f5dab1; }
+.tag-off { background: #f5f5f5; color: #909399; border: 1px solid #eee; }
+
+.row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.primary-btn { background: #409eff; color: #fff; border: 0; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+.outline-btn { background: #fff; border: 1px solid #dcdfe6; color: #606266; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+.mini-btn { border: 1px solid #dcdfe6; background: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.mini-btn.danger { border-color: #fde2e2; color: #f56c6c; }
+
+.pagination { margin-top: 14px; display: flex; justify-content: space-between; align-items: center; }
+.page-controls { display: flex; gap: 8px; align-items: center; }
+.page-btn { border: 1px solid #dcdfe6; background: #fff; border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.page-current { color: #409eff; font-weight: 700; }
+
+.loading { color: #909399; text-align: center; padding: 16px; }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+.modal-panel { width: 760px; max-width: 100%; background: #fff; border-radius: 12px; border: 1px solid #ebeef5; padding: 16px; }
+.form-grid { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: start; margin-top: 10px; }
+.form-grid input, .form-grid select { width: 100%; border: 1px solid #dcdfe6; border-radius: 8px; padding: 10px; }
+.helper-text { color: #909399; font-size: 12px; padding-top: 4px; }
+.calc-val { padding-top: 10px; font-weight: 700; }
+.form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+
+.material-field-row { grid-column: 1 / -1; display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.material-field-row select { flex: 1 1 200px; min-width: 0; }
+.material-field-row .linkish-btn {
+  flex: 0 0 auto; white-space: nowrap; border: 1px solid #409eff; background: #ecf5ff; color: #409eff;
+  padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+.material-field-row .linkish-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+.modal.nested-modal { z-index: 1100; }
+.modal-panel.nested-panel { max-width: 480px; width: 100%; }
+
+.toast { position: fixed; right: 24px; top: 72px; background: #fff; color: #303133; padding: 10px 14px; border-radius: 10px; border: 1px solid #e4e7ed; box-shadow: 0 6px 18px rgba(0,0,0,0.12); z-index: 2000; font-size: 13px; min-width: 220px; max-width: 420px; }
+.toast.error { border-color: #fde2e2; background: #fef0f0; color: #f56c6c; }
+

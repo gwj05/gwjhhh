@@ -2,11 +2,9 @@
 -- 执行此脚本检查所有字段是否已正确添加
 
 USE smart_agriculture;
-
 -- 1. 查看完整的表结构
 SELECT '=== 完整的crop表结构 ===' AS info;
 DESCRIBE crop;
-
 -- 2. 检查新增字段是否存在
 SELECT '=== 新增字段检查 ===' AS info;
 SELECT 

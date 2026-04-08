@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import api from '../utils/api'
+import { INVENTORY_CHANGED_EVENT } from '../utils/inventoryEvents'
 import './Sidebar.css'
 
 const Sidebar = () => {
@@ -8,6 +10,7 @@ const Sidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const [expandedMenus, setExpandedMenus] = useState({})
+  const [homeStockAlertCount, setHomeStockAlertCount] = useState(0)
 
   // 从本地存储恢复展开状态
   useEffect(() => {
@@ -21,6 +24,25 @@ const Sidebar = () => {
   useEffect(() => {
     localStorage.setItem('sidebarExpanded', JSON.stringify(expandedMenus))
   }, [expandedMenus])
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await api.get('/homepage/stock-warnings')
+        setHomeStockAlertCount(Number(res.data?.total ?? 0))
+      } catch {
+        setHomeStockAlertCount(0)
+      }
+    }
+    load()
+    const onDetail = (e) => setHomeStockAlertCount(Number(e.detail?.count ?? 0))
+    window.addEventListener('app:stock-alert-count', onDetail)
+    window.addEventListener(INVENTORY_CHANGED_EVENT, load)
+    return () => {
+      window.removeEventListener('app:stock-alert-count', onDetail)
+      window.removeEventListener(INVENTORY_CHANGED_EVENT, load)
+    }
+  }, [])
 
   // 菜单配置
   const menuConfig = [
@@ -78,11 +100,12 @@ const Sidebar = () => {
       icon: '📦',
       path: null,
       children: [
-        { key: 'material-list', title: '农资列表', path: '/material/list', roles: [1, 2] },
-        { key: 'material-warning', title: '库存预警', path: '/material/warning', roles: [1, 2] },
+        { key: 'material-list', title: '农资列表', path: '/material/list', roles: [1, 2, 3] },
+        { key: 'material-warning', title: '库存预警', path: '/material/warning', roles: [1, 2, 3] },
+        { key: 'material-stock-flow', title: '库存流水', path: '/material/stock-flow', roles: [1, 2, 3] },
         { key: 'material-purchase', title: '采购记录', path: '/material/purchase', roles: [1, 2] }
       ],
-      roles: [1, 2]
+      roles: [1, 2, 3]
     },
     {
       key: 'operation',
@@ -102,11 +125,11 @@ const Sidebar = () => {
       icon: '🌡️',
       path: null,
       children: [
-        { key: 'monitor-realtime', title: '实时数据', path: '/monitor/realtime', roles: [1, 2] },
-        { key: 'monitor-history', title: '历史数据', path: '/monitor/history', roles: [1, 2] },
-        { key: 'monitor-report', title: '数据报表', path: '/monitor/report', roles: [1, 2] }
+        { key: 'monitor-realtime', title: '实时数据', path: '/monitor/realtime', roles: [1, 2, 3] },
+        { key: 'monitor-history', title: '历史数据', path: '/monitor/history', roles: [1, 2, 3] },
+        { key: 'monitor-report', title: '数据报表', path: '/monitor/report', roles: [1, 2, 3] }
       ],
-      roles: [1, 2]
+      roles: [1, 2, 3]
     },
     {
       key: 'warning',
@@ -127,11 +150,11 @@ const Sidebar = () => {
       icon: '⚙️',
       path: null,
       children: [
-        { key: 'system-user', title: '用户管理', path: '/system/user', roles: [1] },
+        { key: 'system-user', title: '用户管理', path: '/system/user', roles: [1, 2] },
         { key: 'system-role', title: '角色管理', path: '/system/role', roles: [1] },
         { key: 'system-permission', title: '权限配置', path: '/system/permission', roles: [1] }
       ],
-      roles: [1] // 仅超级管理员可见
+      roles: [1, 2]
     }
   ]
 
@@ -209,6 +232,9 @@ const Sidebar = () => {
               >
                 <span className="menu-icon">{menu.icon}</span>
                 <span className="menu-text">{menu.title}</span>
+                {menu.key === 'homepage' && homeStockAlertCount > 0 ? (
+                  <span className="sidebar-nav-dot" title={`${homeStockAlertCount} 条库存预警`} />
+                ) : null}
                 {hasChildren && (
                   <span className={`menu-arrow ${isExpanded ? 'expanded' : ''}`}>▼</span>
                 )}

@@ -10,11 +10,9 @@ async function checkTables() {
        WHERE TABLE_SCHEMA = DATABASE() 
        AND TABLE_NAME IN ('farm_principal', 'principal_permission', 'principal_operation_log')`
     );
-    
     const existingTables = tables.map(t => t.TABLE_NAME);
     const requiredTables = ['farm_principal', 'principal_permission', 'principal_operation_log'];
     const missingTables = requiredTables.filter(t => !existingTables.includes(t));
-    
     if (missingTables.length > 0) {
       console.log('❌ 缺少以下表:', missingTables.join(', '));
       console.log('请执行以下SQL脚本创建表:');
@@ -23,7 +21,6 @@ async function checkTables() {
     } else {
       console.log('✅ 所有必需的表都存在');
     }
-    
     // 检查表结构
     const [columns] = await pool.execute(
       `SELECT COLUMN_NAME, DATA_TYPE 

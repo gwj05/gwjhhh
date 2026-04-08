@@ -2,7 +2,6 @@
  * 检查作物表结构脚本
  * 用于验证数据库迁移是否成功
  */
-
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 

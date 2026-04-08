@@ -20,6 +20,21 @@
   gap: 30px;
 }
 
+.global-farm-indicator {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.global-farm-indicator strong {
+  margin-left: 6px;
+  color: #fff;
+}
+
 .system-logo {
   display: flex;
   align-items: center;
@@ -166,5 +181,20 @@
   height: 1px;
   background: #e8e8e8;
   margin: 4px 0;
+}
+
+.farm-switch-toast {
+  position: absolute;
+  left: 50%;
+  top: 66px;
+  transform: translateX(-50%);
+  background: #ecf5ff;
+  border: 1px solid #d9ecff;
+  color: #1565c0;
+  font-size: 13px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  pointer-events: none;
 }
 

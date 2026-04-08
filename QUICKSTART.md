@@ -50,11 +50,11 @@ npm run dev
 
 这将同时启动：
 - 后端服务器：http://localhost:5000
-- 前端开发服务器：http://localhost:3000
+- 前端开发服务器：http://localhost:3001
 
 ### 4. 访问应用
 
-打开浏览器访问：http://localhost:3000
+打开浏览器访问：http://localhost:3001
 
 ## 测试账号
 
@@ -65,8 +65,8 @@ npm run dev
 ## 功能说明
 
 ### 登录注册
-- 访问 http://localhost:3000/login 进行登录
-- 访问 http://localhost:3000/register 进行注册
+- 访问 http://localhost:3001/login 进行登录
+- 访问 http://localhost:3001/register 进行注册
 
 ### 角色切换
 - 管理员可以切换为运维人员或普通用户

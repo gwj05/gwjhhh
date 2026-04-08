@@ -2,6 +2,121 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const authenticateToken = require('../middleware/auth');
+const materialRouter = require('./material');
+
+/** 与农资模块一致的库存状态 SQL 片段 */
+function computedMaterialStockCase() {
+  return `
+    CASE
+      WHEN COALESCE(m.shelf_status,'ON') = 'OFF' THEN '下架'
+      WHEN COALESCE(m.stock_num,0) = 0 THEN '缺货'
+      WHEN COALESCE(m.stock_num,0) <= COALESCE(m.safety_stock_num,0) THEN '库存不足'
+      ELSE '正常'
+    END
+  `;
+}
+
+// 首页库存预警（与 /material/warnings 同源规则，仅返回列表摘要）
+router.get('/stock-warnings', authenticateToken, async (req, res) => {
+  try {
+    await materialRouter.ensureMaterialTables();
+    const roleId = req.user.role_id;
+    const userFarmId = req.user.farm_id;
+    const { farm_id } = req.query;
+
+    const params = [];
+    let whereSql = 'WHERE 1=1';
+    if (roleId !== 1) {
+      if (!userFarmId) {
+        return res.json({
+          total: 0,
+          low_count: 0,
+          out_count: 0,
+          items: []
+        });
+      }
+      whereSql += ' AND m.farm_id = ?';
+      params.push(userFarmId);
+    } else if (farm_id) {
+      whereSql += ' AND m.farm_id = ?';
+      params.push(farm_id);
+    }
+
+    const stateExpr = computedMaterialStockCase();
+    whereSql += ` AND (${stateExpr}) IN ('库存不足', '缺货')`;
+
+    const [statsRows] = await pool.execute(
+      `
+      SELECT
+        SUM(CASE WHEN (${stateExpr}) = '库存不足' THEN 1 ELSE 0 END) AS low_count,
+        SUM(CASE WHEN (${stateExpr}) = '缺货' THEN 1 ELSE 0 END) AS out_count
+      FROM agricultural_material m
+      ${whereSql}
+      `,
+      params
+    );
+    const low_count = Number(statsRows?.[0]?.low_count || 0);
+    const out_count = Number(statsRows?.[0]?.out_count || 0);
+    const total = low_count + out_count;
+
+    const [listRows] = await pool.execute(
+      `
+      SELECT
+        m.material_id,
+        m.farm_id,
+        f.farm_name,
+        m.material_name,
+        m.stock_num,
+        m.safety_stock_num,
+        m.updated_at,
+        m.created_at,
+        ${stateExpr} AS stock_state
+      FROM agricultural_material m
+      INNER JOIN farm f ON m.farm_id = f.farm_id
+      ${whereSql}
+      ORDER BY (CASE WHEN (${stateExpr}) = '缺货' THEN 0 ELSE 1 END), m.stock_num ASC, m.material_id DESC
+      LIMIT 50
+      `,
+      params
+    );
+
+    const items = (listRows || []).map((row) => {
+      const st = row.stock_state;
+      const sn = Number(row.stock_num ?? 0);
+      const level = st === '缺货' ? 'critical' : 'warning';
+      let line = `【库存】${row.material_name}`;
+      if (st === '缺货') line += '缺货';
+      else line += `库存不足（当前 ${sn}）`;
+      const sortTime =
+        row.updated_at ||
+        row.created_at ||
+        null;
+      return {
+        kind: 'stock',
+        material_id: row.material_id,
+        farm_id: row.farm_id,
+        farm_name: row.farm_name,
+        material_name: row.material_name,
+        stock_num: sn,
+        safety_stock_num: Number(row.safety_stock_num ?? 0),
+        stock_state: st,
+        level,
+        line,
+        sort_time: sortTime
+      };
+    });
+
+    res.json({
+      total,
+      low_count,
+      out_count,
+      items
+    });
+  } catch (error) {
+    console.error('homepage/stock-warnings error:', error);
+    res.status(500).json({ message: '服务器错误', error: error.message });
+  }
+});
 
 // 获取气象站数据（最新一条记录，供简单展示或默认值）
 router.get('/weather', authenticateToken, async (req, res) => {
@@ -96,6 +211,29 @@ router.get('/weather-history', authenticateToken, async (req, res) => {
     query += ' ORDER BY em.monitor_time ASC';
 
     const [rows] = await pool.execute(query, params);
+
+    // 若时间窗口内无数据，则回退为最近 48 条，避免前端“暂无数据”
+    if (!rows || rows.length === 0) {
+      let fallbackQuery = `
+        SELECT temperature, humidity, soil_ph, monitor_time
+        FROM environment_monitor
+        WHERE 1=1
+        ${roleId !== 1 ? 'AND farm_id = ?' : (farm_id ? 'AND farm_id = ?' : '')}
+        ORDER BY monitor_time DESC
+        LIMIT 48
+      `
+      const fallbackParams = []
+      if (roleId !== 1) {
+        fallbackParams.push(userFarmId)
+      } else if (farm_id) {
+        fallbackParams.push(farm_id)
+      }
+
+      const [fallbackRows] = await pool.execute(fallbackQuery, fallbackParams)
+      const ascRows = (fallbackRows || []).sort((a, b) => new Date(a.monitor_time) - new Date(b.monitor_time))
+      return res.json(ascRows)
+    }
+
     res.json(rows);
   } catch (error) {
     console.error('获取气象历史数据错误:', error);

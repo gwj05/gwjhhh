@@ -1,13 +1,27 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import api from '../utils/api'
+import { INVENTORY_CHANGED_EVENT } from '../utils/inventoryEvents'
+import { WARNING_CHANGED_EVENT } from '../utils/warningEvents'
 import './HomePage.css'
 
+/** 首页预警列表统一时间格式 */
+function formatAlertTime(value) {
+  if (value == null) return '—'
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return '—'
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 const HomePage = () => {
+  const navigate = useNavigate()
   const [weather, setWeather] = useState(null)
   const [weatherHistory, setWeatherHistory] = useState([])
   const [weatherRange, setWeatherRange] = useState('24h') // 24h or 7d
   const [deviceStats, setDeviceStats] = useState([])
   const [warnings, setWarnings] = useState([])
+  const [stockAlerts, setStockAlerts] = useState({ total: 0, low_count: 0, out_count: 0, items: [] })
   const [videos, setVideos] = useState([])
   const [mapData, setMapData] = useState({ farms: [], devices: [] })
   const [loading, setLoading] = useState(false)
@@ -51,7 +65,17 @@ const HomePage = () => {
     }
   }
 
-  // 获取预警消息列表
+  const fetchStockAlerts = useCallback(async () => {
+    try {
+      const res = await api.get('/homepage/stock-warnings')
+      setStockAlerts(res.data || { total: 0, low_count: 0, out_count: 0, items: [] })
+      window.dispatchEvent(new CustomEvent('app:stock-alert-count', { detail: { count: res.data?.total ?? 0 } }))
+    } catch (error) {
+      console.error('获取库存预警失败:', error)
+    }
+  }, [])
+
+  // 获取作物/设备类预警消息列表
   const fetchWarnings = useCallback(async (page = 1, append = false) => {
     if (loading) return
     setLoading(true)
@@ -120,19 +144,99 @@ const HomePage = () => {
     fetchWeather()
     fetchWeatherHistory(weatherRange)
     fetchDeviceStats()
+    fetchStockAlerts()
     fetchWarnings(1, false)
     fetchVideos()
     fetchMapData()
-  }, [fetchWeatherHistory, weatherRange])
+  }, [fetchWeatherHistory, weatherRange, fetchStockAlerts])
 
-  // 获取预警等级样式
-  const getWarningLevelStyle = (level) => {
-    const styles = {
-      1: { bg: '#ffebee', border: '#f44336', text: '#c62828', label: '紧急' },
-      2: { bg: '#fff3e0', border: '#ff9800', text: '#e65100', label: '普通' },
-      3: { bg: '#e3f2fd', border: '#2196f3', text: '#1565c0', label: '提示' }
+  useEffect(() => {
+    const onInv = () => {
+      fetchStockAlerts()
+      fetchWarnings(1, false)
     }
-    return styles[level] || styles[2]
+    const onWarn = () => {
+      fetchWarnings(1, false)
+    }
+    window.addEventListener(INVENTORY_CHANGED_EVENT, onInv)
+    window.addEventListener(WARNING_CHANGED_EVENT, onWarn)
+    return () => {
+      window.removeEventListener(INVENTORY_CHANGED_EVENT, onInv)
+      window.removeEventListener(WARNING_CHANGED_EVENT, onWarn)
+    }
+  }, [fetchStockAlerts, fetchWarnings])
+
+  // 环境模拟在服务端异步生成异常时，定时刷新首页预警列表（与实时监控页互补）
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return
+      fetchWarnings(1, false)
+    }, 60000)
+    return () => window.clearInterval(id)
+  }, [fetchWarnings])
+
+  // 作物/设备预警等级 → 与库存「红/黄」体系对齐：1=紧急(红) 2=普通(黄) 3=提示(琥珀浅)
+  const getCropLevelMeta = (level) => {
+    const map = {
+      1: { label: '紧急', tier: 'critical' },
+      2: { label: '普通', tier: 'warn' },
+      3: { label: '提示', tier: 'info' }
+    }
+    return map[level] || map[2]
+  }
+
+  /** 合并库存预警与作物/设备预警，按时间倒序（库存无时间则排后） */
+  const unifiedAlerts = useMemo(() => {
+    const stockItems = (stockAlerts.items || []).map((s) => {
+      const t = s.sort_time ? new Date(s.sort_time).getTime() : 0
+      const tier = s.level === 'critical' ? 'critical' : 'warn'
+      return {
+        key: `stock-${s.material_id}`,
+        kind: 'stock',
+        tier,
+        categoryLabel: '库存预警',
+        name: s.material_name || '农资',
+        timeMs: t,
+        timeDisplay: formatAlertTime(s.sort_time),
+        statusLabel: s.stock_state === '缺货' ? '缺货' : '库存不足',
+        subLine: `${s.farm_name || ''} · 安全库存 ${s.safety_stock_num ?? '—'}`,
+        stock: s
+      }
+    })
+
+    const cropItems = (warnings || []).map((w) => {
+      const meta = getCropLevelMeta(w.warning_level)
+      const t = w.exception_time ? new Date(w.exception_time).getTime() : 0
+      const hs = w.handle_status || '—'
+      return {
+        key: `crop-${w.exception_id}`,
+        kind: 'crop',
+        tier: meta.tier,
+        categoryLabel: '作物/设备',
+        name: w.exception_type || '异常',
+        timeMs: t,
+        timeDisplay: formatAlertTime(w.exception_time),
+        statusLabel: `${meta.label} · ${hs}`,
+        subLine: [w.farm_name, w.plant_area, w.device_name].filter(Boolean).join(' · ') || '—',
+        detail: w.exception_detail,
+        unread: w.is_read === 0,
+        crop: w
+      }
+    })
+
+    return [...stockItems, ...cropItems].sort((a, b) => b.timeMs - a.timeMs)
+  }, [stockAlerts.items, warnings])
+
+  const handleUnifiedRowClick = (row) => {
+    if (row.kind === 'stock') {
+      navigate('/material/warning')
+      return
+    }
+    const w = row.crop
+    if (w.is_read === 0) {
+      markWarningAsRead(w.exception_id)
+    }
+    navigate('/warning/exception')
   }
 
   return (
@@ -224,59 +328,75 @@ const HomePage = () => {
           </div>
         </div>
 
-        {/* 预警消息模块 */}
+        {/* 预警消息模块（库存预警 + 作物异常） */}
         <div className="homepage-card warning-card">
-          <div className="card-header">
-            <h3>⚠️ 预警消息</h3>
+          <div className="card-header warning-card-header">
+            <h3 className="warning-title-row">
+              <span>⚠️ 预警消息</span>
+              {stockAlerts.total > 0 ? <span className="header-badge-dot" title="存在库存预警" /> : null}
+            </h3>
           </div>
           <div
             className="warning-list"
             ref={warningScrollRef}
             onScroll={handleWarningScroll}
           >
-            {warnings.length > 0 ? (
-              warnings.map((warning) => {
-                const levelStyle = getWarningLevelStyle(warning.warning_level)
-                return (
-                  <div
-                    key={warning.exception_id}
-                    className={`warning-item ${warning.is_read === 0 ? 'unread' : ''}`}
-                    style={{
-                      borderLeftColor: levelStyle.border,
-                      backgroundColor: warning.is_read === 0 ? '#fff5f5' : '#fff'
-                    }}
-                    onClick={() => warning.is_read === 0 && markWarningAsRead(warning.exception_id)}
-                  >
-                    <div className="warning-header">
-                      <span className="warning-level" style={{ color: levelStyle.text }}>
-                        {levelStyle.label}
+            {(() => {
+              const cropCount = warnings.length
+              const stockCount = stockAlerts.total
+              const totalAlerts = stockCount + cropCount
+              if (totalAlerts === 0) {
+                return <div className="empty-state">暂无预警信息</div>
+              }
+              return (
+                <>
+                  <div className="warning-summary">
+                    当前共 <strong>{totalAlerts}</strong> 条预警（按时间倒序）
+                    {stockCount > 0 ? (
+                      <span className="stock-summary-line">
+                        ；库存：<strong className="stock-count-highlight">{stockCount}</strong> 条
+                        {stockAlerts.out_count > 0 ? (
+                          <span className="tag-severe"> 缺货 {stockAlerts.out_count}</span>
+                        ) : null}
+                        {stockAlerts.low_count > 0 ? (
+                          <span className="tag-low"> 不足 {stockAlerts.low_count}</span>
+                        ) : null}
                       </span>
-                      <span className="warning-time">
-                        {new Date(warning.exception_time).toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="warning-type">{warning.exception_type}</div>
-                    <div className="warning-detail">{warning.exception_detail}</div>
-                    <div className="warning-meta">
-                      <span>{warning.farm_name}</span>
-                      <span>{warning.plant_area}</span>
-                      <span>{warning.device_name}</span>
-                    </div>
-                    {warning.is_read === 0 && (
-                      <div className="unread-badge">未读</div>
-                    )}
+                    ) : null}
                   </div>
-                )
-              })
-            ) : (
-              <div className="empty-state">暂无预警消息</div>
-            )}
-            {loading && (
-              <div className="loading-more">加载中...</div>
-            )}
-            {!hasMoreWarnings && warnings.length > 0 && (
-              <div className="no-more">没有更多数据了</div>
-            )}
+                  <div className="unified-alert-list">
+                    {unifiedAlerts.map((row) => (
+                      <button
+                        key={row.key}
+                        type="button"
+                        className={`unified-alert-card tier-${row.tier} ${row.kind === 'crop' && row.unread ? 'is-unread' : ''}`}
+                        onClick={() => handleUnifiedRowClick(row)}
+                      >
+                        <div className="u-alert-top">
+                          <div className="u-alert-left">
+                            <span className="u-alert-cat">{row.categoryLabel}</span>
+                            <span className="u-alert-name">{row.name}</span>
+                          </div>
+                          <time className="u-alert-time" dateTime={row.timeMs ? new Date(row.timeMs).toISOString() : undefined}>
+                            {row.timeDisplay}
+                          </time>
+                        </div>
+                        <div className="u-alert-bottom">
+                          <span className={`u-alert-status status-${row.tier}`}>{row.statusLabel}</span>
+                          <span className="u-alert-sub">{row.subLine}</span>
+                        </div>
+                        {row.kind === 'crop' && row.detail ? (
+                          <p className="u-alert-detail">{row.detail}</p>
+                        ) : null}
+                        {row.kind === 'crop' && row.unread ? <span className="u-alert-unread">未读</span> : null}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )
+            })()}
+            {loading ? <div className="loading-more">加载中...</div> : null}
+            {!hasMoreWarnings && warnings.length > 0 ? <div className="no-more">没有更多数据了</div> : null}
           </div>
         </div>
 
