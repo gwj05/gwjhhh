@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useDispatch } from 'react-redux'
 import { useAuth } from '../context/AuthContext'
-import api from '../utils/api'
 import { INVENTORY_CHANGED_EVENT } from '../utils/inventoryEvents'
+import { routeConfig } from '../routes/routeConfig'
+import { useFarmKey } from '../hooks/useFarmKey'
+import { api as storeApi, useGetHomeStockWarningsQuery } from '../store/services/api'
 import './Sidebar.css'
 
 const Sidebar = () => {
   const { user } = useAuth()
+  const dispatch = useDispatch()
+  const farmKey = useFarmKey()
   const navigate = useNavigate()
   const location = useLocation()
   const [expandedMenus, setExpandedMenus] = useState({})
-  const [homeStockAlertCount, setHomeStockAlertCount] = useState(0)
+
+  const { data: stockWarnData } = useGetHomeStockWarningsQuery(farmKey, {
+    skip: !farmKey,
+    pollingInterval: 60_000,
+    refetchOnFocus: true,
+    refetchOnReconnect: true
+  })
+  const homeStockAlertCount = Number(stockWarnData?.total ?? 0)
 
   // 从本地存储恢复展开状态
   useEffect(() => {
@@ -26,137 +38,14 @@ const Sidebar = () => {
   }, [expandedMenus])
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await api.get('/homepage/stock-warnings')
-        setHomeStockAlertCount(Number(res.data?.total ?? 0))
-      } catch {
-        setHomeStockAlertCount(0)
-      }
-    }
-    load()
-    const onDetail = (e) => setHomeStockAlertCount(Number(e.detail?.count ?? 0))
-    window.addEventListener('app:stock-alert-count', onDetail)
-    window.addEventListener(INVENTORY_CHANGED_EVENT, load)
-    return () => {
-      window.removeEventListener('app:stock-alert-count', onDetail)
-      window.removeEventListener(INVENTORY_CHANGED_EVENT, load)
-    }
-  }, [])
+    const onInv = () =>
+      dispatch(storeApi.util.invalidateTags(['StockWarnings', 'Homepage']))
+    window.addEventListener(INVENTORY_CHANGED_EVENT, onInv)
+    return () => window.removeEventListener(INVENTORY_CHANGED_EVENT, onInv)
+  }, [dispatch])
 
-  // 菜单配置
-  const menuConfig = [
-    {
-      key: 'home',
-      title: '首页',
-      icon: '🏠',
-      path: '/home',
-      children: null,
-      roles: [1, 2, 3] // 所有角色可见
-    },
-    {
-      key: 'homepage',
-      title: '系统首页',
-      icon: '📊',
-      path: '/homepage',
-      children: null,
-      roles: [1, 2, 3] // 所有角色可见
-    },
-    {
-      key: 'overview',
-      title: '系统概览',
-      icon: '📊',
-      path: '/overview',
-      children: null,
-      roles: [1, 2] // 超级管理员、农场管理员可见
-    },
-    {
-      key: 'farm',
-      title: '农场管理',
-      icon: '🏢',
-      path: null,
-      children: [
-        { key: 'farm-list', title: '农场列表', path: '/farm/list', roles: [1, 2] },
-        { key: 'farm-detail', title: '农场详情', path: '/farm/detail', roles: [1, 2] },
-        { key: 'farm-manager', title: '负责人管理', path: '/farm/manager', roles: [1, 2] }
-      ],
-      roles: [1, 2]
-    },
-    {
-      key: 'crop',
-      title: '作物管理',
-      icon: '🌾',
-      path: null,
-      children: [
-        { key: 'crop-list', title: '作物列表', path: '/crop/list', roles: [1, 2, 3] },
-        { key: 'crop-area', title: '种植区域管理', path: '/crop/area', roles: [1, 2, 3] },
-        { key: 'crop-cycle', title: '生长周期记录', path: '/crop/cycle', roles: [1, 2, 3] }
-      ],
-      roles: [1, 2, 3]
-    },
-    {
-      key: 'material',
-      title: '农资管理',
-      icon: '📦',
-      path: null,
-      children: [
-        { key: 'material-list', title: '农资列表', path: '/material/list', roles: [1, 2, 3] },
-        { key: 'material-warning', title: '库存预警', path: '/material/warning', roles: [1, 2, 3] },
-        { key: 'material-stock-flow', title: '库存流水', path: '/material/stock-flow', roles: [1, 2, 3] },
-        { key: 'material-purchase', title: '采购记录', path: '/material/purchase', roles: [1, 2] }
-      ],
-      roles: [1, 2, 3]
-    },
-    {
-      key: 'operation',
-      title: '农事操作',
-      icon: '🔧',
-      path: null,
-      children: [
-        { key: 'operation-query', title: '操作记录查询', path: '/operation/query', roles: [1, 2, 3] },
-        { key: 'operation-fertilize', title: '施肥记录', path: '/operation/fertilize', roles: [1, 2, 3] },
-        { key: 'operation-irrigate', title: '灌溉记录', path: '/operation/irrigate', roles: [1, 2, 3] }
-      ],
-      roles: [1, 2, 3]
-    },
-    {
-      key: 'monitor',
-      title: '环境监测',
-      icon: '🌡️',
-      path: null,
-      children: [
-        { key: 'monitor-realtime', title: '实时数据', path: '/monitor/realtime', roles: [1, 2, 3] },
-        { key: 'monitor-history', title: '历史数据', path: '/monitor/history', roles: [1, 2, 3] },
-        { key: 'monitor-report', title: '数据报表', path: '/monitor/report', roles: [1, 2, 3] }
-      ],
-      roles: [1, 2, 3]
-    },
-    {
-      key: 'warning',
-      title: '智能预警',
-      icon: '⚠️',
-      path: null,
-      children: [
-        { key: 'warning-device', title: '监控设备管理', path: '/warning/device', roles: [1, 2] },
-        { key: 'warning-exception', title: '作物异常记录', path: '/warning/exception', roles: [1, 2] },
-        { key: 'warning-push', title: '异常推送记录', path: '/warning/push', roles: [1, 2] },
-        { key: 'warning-status', title: '处理状态统计', path: '/warning/status', roles: [1, 2] }
-      ],
-      roles: [1, 2]
-    },
-    {
-      key: 'system',
-      title: '系统管理',
-      icon: '⚙️',
-      path: null,
-      children: [
-        { key: 'system-user', title: '用户管理', path: '/system/user', roles: [1, 2] },
-        { key: 'system-role', title: '角色管理', path: '/system/role', roles: [1] },
-        { key: 'system-permission', title: '权限配置', path: '/system/permission', roles: [1] }
-      ],
-      roles: [1, 2]
-    }
-  ]
+  // 菜单配置：来自 routeConfig 单一真相源
+  const menuConfig = routeConfig
 
   // 检查菜单是否可见
   const isMenuVisible = (menu) => {

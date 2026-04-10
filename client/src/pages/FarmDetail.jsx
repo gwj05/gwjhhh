@@ -357,12 +357,12 @@ const FarmDetail = () => {
     }
   }, [user?.role_id, detail?.farm_id, detail?.farm_name, switchGlobalFarm])
 
-  // 单独处理最近访问记录（只在id变化时记录）
+  // 记录最近访问（以详情数据为准，避免请求未完成导致漏记）
   useEffect(() => {
     if (detail && detail.farm_id && detail.farm_name) {
       addRecentFarm(detail.farm_id, detail.farm_name)
     }
-  }, [id]) // 只在id变化时触发，避免detail变化导致重复记录
+  }, [detail?.farm_id, detail?.farm_name, addRecentFarm])
 
   const handleBaseUpdate = async (data) => {
     if (!window.confirm('确认修改基础信息？')) return

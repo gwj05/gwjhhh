@@ -1,0 +1,1201 @@
+/**
+ * 农场详情、作物列表、农场管理、库存流水、农资采购/预警 — 驾驶舱对齐
+ * 路由均在 MainLayout .main-content 内
+ */
+
+/* ========== 农场详情 FarmDetail ========== */
+.main-content .farm-detail-page .farm-detail-header h2 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-detail-page .sub-text {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .farm-name-trigger {
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-detail-page .farm-name-trigger:hover,
+.main-content .farm-detail-page .farm-name-trigger.active {
+  color: #a5f3fc !important;
+}
+
+.main-content .farm-detail-page .farm-name-underline {
+  background: linear-gradient(90deg, var(--cockpit-accent), var(--cockpit-accent-deep)) !important;
+}
+
+.main-content .farm-detail-page .farm-name-arrow {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .farm-panel {
+  background: rgba(6, 18, 38, 0.97) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+  box-shadow: var(--shadow-lg), 0 0 32px rgba(34, 211, 238, 0.1) !important;
+  backdrop-filter: blur(14px);
+}
+
+.main-content .farm-detail-page .farm-panel-search {
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-detail-page .search-icon {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .farm-panel-search input {
+  background: rgba(4, 12, 28, 0.9) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-detail-page .search-highlight {
+  background: rgba(251, 191, 36, 0.25) !important;
+  color: #fde68a !important;
+}
+
+.main-content .farm-detail-page .farm-panel-status-filter {
+  background: rgba(4, 12, 28, 0.6) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-detail-page .status-filter-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-detail-page .status-filter-btn:hover {
+  border-color: var(--cockpit-accent) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-detail-page .status-filter-btn.active {
+  color: #042f2e !important;
+  border-color: var(--cockpit-accent) !important;
+}
+
+.main-content .farm-detail-page .status-filter-btn.status-normal.active {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+}
+
+.main-content .farm-detail-page .farm-panel-item:hover {
+  background: rgba(34, 211, 238, 0.08) !important;
+  border-left-color: var(--cockpit-accent) !important;
+}
+
+.main-content .farm-detail-page .farm-panel-item.active {
+  background: linear-gradient(135deg, #0c4a6e, #155e75) !important;
+  color: var(--cockpit-heading) !important;
+  border-left-color: var(--cockpit-accent) !important;
+}
+
+.main-content .farm-detail-page .farm-panel-item.selected {
+  background: rgba(34, 211, 238, 0.1) !important;
+}
+
+.main-content .farm-detail-page .farm-item-name {
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-detail-page .farm-item-address {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .farm-item-checkmark {
+  color: var(--cockpit-accent) !important;
+}
+
+.main-content .farm-detail-page .quick-switch-btn,
+.main-content .farm-detail-page .batch-export-btn,
+.main-content .farm-detail-page .empty-action-btn {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #f0fdfa !important;
+  border: none !important;
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.25);
+}
+
+.main-content .farm-detail-page .view-all-btn {
+  background: rgba(8, 22, 48, 0.8) !important;
+  color: var(--cockpit-accent-soft) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+}
+
+.main-content .farm-detail-page .view-all-btn:hover {
+  background: rgba(34, 211, 238, 0.12) !important;
+}
+
+.main-content .farm-detail-page .more-menu {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.main-content .farm-detail-page .more-menu-item {
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-detail-page .more-menu-item:hover {
+  background: rgba(34, 211, 238, 0.1) !important;
+}
+
+.main-content .farm-detail-page .more-menu-item.danger {
+  color: #fecaca !important;
+}
+
+.main-content .farm-detail-page .more-menu-item.danger:hover {
+  background: rgba(248, 113, 113, 0.12) !important;
+}
+
+.main-content .farm-detail-page .farm-panel-footer {
+  border-top-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-detail-page .farm-panel-empty,
+.main-content .farm-detail-page .empty-text {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .btn-secondary {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-detail-page .btn-secondary:hover {
+  border-color: var(--cockpit-accent) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-detail-page .back-menu {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.main-content .farm-detail-page .back-menu-item {
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-detail-page .back-menu-item:hover {
+  background: rgba(34, 211, 238, 0.1) !important;
+}
+
+.main-content .farm-detail-page .loading-spinner {
+  border-color: rgba(56, 189, 248, 0.2) !important;
+  border-top-color: var(--cockpit-accent) !important;
+}
+
+.main-content .farm-detail-page .loading-text {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .notification-content {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+  color: var(--cockpit-text) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.main-content .farm-detail-page .farm-tabs {
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-detail-page .farm-tab {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .farm-tab.active {
+  background: rgba(8, 22, 48, 0.9) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  border-bottom: none !important;
+  color: var(--cockpit-accent-soft) !important;
+  font-weight: 600;
+}
+
+.main-content .farm-detail-page .farm-tab-panel {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  backdrop-filter: blur(12px);
+}
+
+.main-content .farm-detail-page .card {
+  background: rgba(6, 18, 38, 0.55) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .farm-detail-page .card-title {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-detail-page .form-grid label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-detail-page .coord-separator {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .actions button {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-detail-page .actions .primary,
+.main-content .farm-detail-page .submit-btn {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #f0fdfa !important;
+  border: none !important;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.2);
+}
+
+.main-content .farm-detail-page .simple-table th {
+  background: rgba(4, 12, 28, 0.95) !important;
+  color: var(--cockpit-text-secondary) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-detail-page .simple-table td {
+  border-bottom-color: rgba(56, 189, 248, 0.1) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-detail-page .simple-table button {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-detail-page .mini-chart {
+  background: rgba(6, 18, 38, 0.5) !important;
+  border-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-detail-page .chart-title {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-detail-page .chart-footer,
+.main-content .farm-detail-page .chart-empty,
+.main-content .farm-detail-page .bar-label {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-detail-page .ring-inner {
+  background: var(--cockpit-bg-elevated) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-detail-page .factor-item {
+  background: rgba(6, 18, 38, 0.55) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-detail-page .advice-list {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+/* ========== 作物列表 CropList ========== */
+.main-content .crop-list-page {
+  background: transparent !important;
+  min-height: auto !important;
+  padding: 20px;
+}
+
+.main-content .crop-list-page .crop-list-header h2 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .crop-list-page .primary-btn {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #f0fdfa !important;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.2);
+}
+
+.main-content .crop-list-page .primary-outline-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  color: var(--cockpit-accent-soft) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+}
+
+.main-content .crop-list-page .primary-outline-btn:hover {
+  background: rgba(34, 211, 238, 0.12) !important;
+}
+
+.main-content .crop-list-page .quick-farm-filter {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.main-content .crop-list-page .quick-filter-label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .crop-list-page .quick-filter-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .crop-list-page .quick-filter-btn:hover {
+  border-color: var(--cockpit-accent) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .crop-list-page .quick-filter-btn.active {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #042f2e !important;
+  border-color: var(--cockpit-accent) !important;
+}
+
+.main-content .crop-list-page .crop-filter-panel {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.main-content .crop-list-page .filter-item label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .crop-list-page .filter-sep,
+.main-content .crop-list-page .advanced-link {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .crop-list-page .advanced-link {
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .crop-list-page .filter-actions-row {
+  border-top-color: var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .crop-table-wrapper {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .batch-bar {
+  background: rgba(34, 211, 238, 0.08) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .batch-bar span {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .crop-list-page .batch-bar button {
+  background: rgba(8, 22, 48, 0.85) !important;
+  border-color: var(--cockpit-accent) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .crop-list-page .batch-bar button:hover {
+  background: rgba(34, 211, 238, 0.2) !important;
+  color: #f0fdfa !important;
+}
+
+.main-content .crop-list-page .crop-table thead {
+  background: rgba(4, 12, 28, 0.95) !important;
+}
+
+.main-content .crop-list-page .crop-table th {
+  color: var(--cockpit-text-secondary) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .crop-table td {
+  border-bottom-color: rgba(56, 189, 248, 0.1) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .crop-list-page .crop-table th.sortable:hover {
+  background: rgba(34, 211, 238, 0.08) !important;
+}
+
+.main-content .crop-list-page .sort-indicator {
+  color: var(--cockpit-accent) !important;
+}
+
+.main-content .crop-list-page .crop-table tbody tr:hover {
+  background: rgba(34, 211, 238, 0.06) !important;
+}
+
+.main-content .crop-list-page .crop-name-cell {
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .crop-list-page .crop-overview-card {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.main-content .crop-list-page .overview-title {
+  color: var(--cockpit-heading) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .overview-label {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .crop-list-page .overview-data {
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .crop-list-page .overview-data.highlight {
+  color: var(--cockpit-success) !important;
+}
+
+.main-content .crop-list-page .health-score-text {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .crop-list-page .empty-text {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .crop-list-page .crop-pagination {
+  border-top-color: var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .pagination-info {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .crop-list-page .page-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .crop-list-page .page-btn.active {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #f0fdfa !important;
+  border-color: var(--cockpit-accent) !important;
+}
+
+.main-content .crop-list-page .modal-content {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.main-content .crop-list-page .modal-header {
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .modal-header h3 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .crop-list-page .modal-footer {
+  border-top-color: var(--cockpit-border) !important;
+}
+
+.main-content .crop-list-page .form-grid label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .crop-list-page .range-separator {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .crop-list-page .skeleton-row {
+  background: linear-gradient(90deg, rgba(15, 35, 68, 0.5) 25%, rgba(34, 211, 238, 0.08) 50%, rgba(15, 35, 68, 0.5) 75%) !important;
+}
+
+.main-content .crop-list-page .edit-btn {
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: #7dd3fc !important;
+}
+
+.main-content .crop-list-page .delete-btn {
+  background: rgba(248, 113, 113, 0.15) !important;
+  color: #fecaca !important;
+}
+
+/* ========== 农场管理 FarmManager ========== */
+.main-content .farm-manager-page .farm-manager-header h2 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-manager-page .tab-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-manager-page .tab-btn:hover {
+  border-color: var(--cockpit-accent) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-manager-page .tab-btn.active {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #f0fdfa !important;
+  border-color: var(--cockpit-accent) !important;
+}
+
+.main-content .farm-manager-page .farm-manager-actions .primary-btn {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #f0fdfa !important;
+  box-shadow: 0 0 14px rgba(34, 211, 238, 0.2);
+}
+
+.main-content .farm-manager-page .farm-manager-actions .outline-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border-strong) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-manager-page .farm-filter-panel {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-sm);
+}
+
+.main-content .farm-manager-page .farm-table-wrapper {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .farm-manager-page .farm-table thead {
+  background: rgba(4, 12, 28, 0.95) !important;
+}
+
+.main-content .farm-manager-page .farm-table th {
+  color: var(--cockpit-text-secondary) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-manager-page .farm-table td {
+  color: var(--cockpit-text) !important;
+  border-bottom-color: rgba(56, 189, 248, 0.1) !important;
+}
+
+.main-content .farm-manager-page .farm-table tbody tr:hover {
+  background: rgba(34, 211, 238, 0.06) !important;
+}
+
+.main-content .farm-manager-page .empty-state {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .farm-manager-page .empty-state p {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-manager-page .filter-item label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-manager-page .filter-item.buttons button {
+  color: var(--cockpit-accent-soft) !important;
+  border-color: var(--cockpit-accent) !important;
+  background: transparent !important;
+}
+
+.main-content .farm-manager-page .filter-item.buttons button:hover {
+  background: rgba(34, 211, 238, 0.12) !important;
+}
+
+.main-content .farm-manager-page .table-btn {
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-manager-page .table-btn:hover {
+  background: rgba(34, 211, 238, 0.1) !important;
+}
+
+.main-content .farm-manager-page .principal-tag.main {
+  background: rgba(248, 113, 113, 0.15) !important;
+  color: #fecaca !important;
+}
+
+.main-content .farm-manager-page .principal-tag.sub {
+  background: rgba(56, 189, 248, 0.15) !important;
+  color: #7dd3fc !important;
+}
+
+.main-content .farm-manager-page .scope-tag {
+  background: rgba(15, 35, 68, 0.6) !important;
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-manager-page .scope-tag.single {
+  background: rgba(74, 222, 128, 0.12) !important;
+  color: #86efac !important;
+}
+
+.main-content .farm-manager-page .scope-tag.multiple {
+  background: rgba(251, 191, 36, 0.12) !important;
+  color: #fde68a !important;
+}
+
+.main-content .farm-manager-page .permission-tag {
+  background: rgba(8, 22, 48, 0.75) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-manager-page .farm-pagination {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .farm-manager-page .page-info {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-manager-page .page-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-manager-page .page-current {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+  color: #f0fdfa !important;
+}
+
+.main-content .farm-manager-page .modal-content {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+}
+
+.main-content .farm-manager-page .modal-content h3 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-manager-page .form-row label,
+.main-content .farm-manager-page .permission-module {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-manager-page .checkbox-group {
+  border-color: var(--cockpit-border) !important;
+  background: rgba(4, 12, 28, 0.5) !important;
+}
+
+.main-content .farm-manager-page .modal-footer {
+  border-top-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-manager-page .modal-footer .primary-btn {
+  background: linear-gradient(135deg, #0e7490, #22d3ee) !important;
+}
+
+.main-content .farm-manager-page .modal-footer .outline-btn {
+  background: rgba(8, 22, 48, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+/* ========== 库存流水 StockFlow ========== */
+.main-content .stock-flow-page .stock-flow-header h2 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .stock-flow-page .stock-flow-hint {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .stock-flow-page .filter-card,
+.main-content .stock-flow-page .table-card {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .stock-flow-page .tag-flow-in {
+  background: rgba(74, 222, 128, 0.12) !important;
+  color: #86efac !important;
+  border-color: rgba(74, 222, 128, 0.3) !important;
+}
+
+.main-content .stock-flow-page .tag-flow-out {
+  background: rgba(248, 113, 113, 0.12) !important;
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
+/* ========== 农资采购 / 预警 ========== */
+.main-content .material-purchase-page .stat-card,
+.main-content .material-purchase-page .filter-card,
+.main-content .material-purchase-page .table-card,
+.main-content .material-warning-page .stat-card,
+.main-content .material-warning-page .warning-filter-card,
+.main-content .material-warning-page .table-card {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .material-purchase-page .stat-card.warn {
+  background: rgba(120, 80, 20, 0.25) !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
+}
+
+.main-content .material-warning-page .stat-card.warn {
+  background: rgba(120, 80, 20, 0.25) !important;
+  border-color: rgba(251, 191, 36, 0.35) !important;
+}
+
+.main-content .material-warning-page .stat-card.danger {
+  background: rgba(60, 20, 25, 0.4) !important;
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+.main-content .material-warning-page .stat-value {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .material-purchase-page .tag-normal,
+.main-content .material-warning-page .tag-normal {
+  background: rgba(74, 222, 128, 0.12) !important;
+  color: #86efac !important;
+  border-color: rgba(74, 222, 128, 0.3) !important;
+}
+
+.main-content .material-purchase-page .tag-warn,
+.main-content .material-warning-page .tag-warn {
+  background: rgba(251, 191, 36, 0.12) !important;
+  color: #fde68a !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+.main-content .material-purchase-page .tag-off,
+.main-content .material-warning-page .tag-danger {
+  background: rgba(15, 35, 68, 0.6) !important;
+  color: var(--cockpit-text-muted) !important;
+  border-color: var(--cockpit-border) !important;
+}
+
+.main-content .material-warning-page .tag-danger {
+  background: rgba(248, 113, 113, 0.12) !important;
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+}
+
+.main-content .material-warning-page .row-danger {
+  background: rgba(50, 20, 25, 0.35) !important;
+}
+
+/* ========== 农场列表 FarmList（筛选 / 表体 / 分页仍为浅色源样式，此处统一深色） ========== */
+.main-content .farm-list-page {
+  color: var(--cockpit-text);
+}
+
+.main-content .farm-list-page .farm-list-header h2 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-list-page .farm-filter-panel {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.main-content .farm-list-page .filter-item label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-list-page .filter-item input,
+.main-content .farm-list-page .filter-item select {
+  background: rgba(4, 12, 28, 0.85) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-list-page .filter-sep {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-list-page .advanced-toggle .advanced-link {
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-list-page .farm-table-wrapper {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.main-content .farm-list-page .farm-table thead {
+  background: linear-gradient(135deg, rgba(8, 47, 73, 0.95), rgba(15, 35, 68, 0.98)) !important;
+}
+
+.main-content .farm-list-page .farm-table th {
+  color: var(--cockpit-text-secondary) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-list-page .farm-table td {
+  color: var(--cockpit-text) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .farm-list-page .farm-table tbody tr {
+  background: transparent !important;
+}
+
+.main-content .farm-list-page .farm-table tbody tr:hover {
+  background: rgba(34, 211, 238, 0.06) !important;
+}
+
+.main-content .farm-list-page .farm-table th:hover {
+  background: rgba(34, 211, 238, 0.08) !important;
+}
+
+.main-content .farm-list-page .farm-name-cell {
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-list-page .batch-bar {
+  background: rgba(8, 47, 73, 0.5) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-list-page .batch-bar button {
+  background: rgba(4, 12, 28, 0.75) !important;
+  border-color: var(--cockpit-border-strong) !important;
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .farm-list-page .table-btn {
+  background: rgba(4, 12, 28, 0.65) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-list-page .table-btn:hover {
+  background: rgba(34, 211, 238, 0.1) !important;
+  border-color: var(--cockpit-accent) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-list-page .farm-pagination {
+  padding: 12px 16px;
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  border-radius: var(--radius-lg);
+}
+
+.main-content .farm-list-page .farm-pagination .page-info {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-list-page .farm-pagination button {
+  background: rgba(4, 12, 28, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-list-page .farm-pagination select {
+  background: rgba(4, 12, 28, 0.85) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-list-page .page-current {
+  background: linear-gradient(135deg, var(--cockpit-accent-deep), var(--cockpit-accent)) !important;
+  color: #042f2e !important;
+}
+
+.main-content .farm-list-page .farm-overview-popover {
+  background: rgba(6, 18, 38, 0.98) !important;
+  border: 1px solid var(--cockpit-border-strong) !important;
+  box-shadow: var(--shadow-lg) !important;
+}
+
+.main-content .farm-list-page .overview-title {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-list-page .overview-env,
+.main-content .farm-list-page .overview-device,
+.main-content .farm-list-page .overview-warning {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-list-page .overview-empty {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-list-page .farm-form-modal {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-list-page .farm-form-modal h3 {
+  color: var(--cockpit-heading) !important;
+}
+
+.main-content .farm-list-page .farm-form-row label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .farm-list-page .farm-form-row input,
+.main-content .farm-list-page .farm-form-row select {
+  background: rgba(4, 12, 28, 0.85) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .farm-list-page .coord-tip {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .farm-list-page .farm-form-footer button {
+  background: rgba(4, 12, 28, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+/* ========== 农资列表 MaterialList ========== */
+.main-content .material-list-page {
+  color: var(--cockpit-text);
+}
+
+.main-content .material-list-page .material-sub,
+.main-content .material-list-page .page-info,
+.main-content .material-list-page .loading,
+.main-content .material-list-page .empty-state-panel {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .material-list-page .material-filter-card,
+.main-content .material-list-page .table-card {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+
+.main-content .material-list-page .filter-item label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .material-list-page .filter-item input,
+.main-content .material-list-page .filter-item select {
+  background: rgba(4, 12, 28, 0.85) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .material-list-page .material-table th {
+  color: var(--cockpit-text-secondary) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .material-list-page .material-table td {
+  color: var(--cockpit-text) !important;
+  border-bottom-color: var(--cockpit-border) !important;
+}
+
+.main-content .material-list-page .material-table tbody tr {
+  background: transparent !important;
+}
+
+.main-content .material-list-page .material-table tbody tr:hover {
+  background: rgba(34, 211, 238, 0.06) !important;
+}
+
+/* 缺货行：深色底 + 可读正文，避免浅粉底 + 浅色字 */
+.main-content .material-list-page .row-danger {
+  background: rgba(60, 22, 28, 0.55) !important;
+}
+
+.main-content .material-list-page .row-danger td {
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .material-list-page .tag-normal {
+  background: rgba(74, 222, 128, 0.12) !important;
+  color: #86efac !important;
+  border-color: rgba(74, 222, 128, 0.3) !important;
+}
+
+.main-content .material-list-page .tag-warn {
+  background: rgba(251, 191, 36, 0.12) !important;
+  color: #fde68a !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+.main-content .material-list-page .tag-danger {
+  background: rgba(248, 113, 113, 0.15) !important;
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.35) !important;
+}
+
+.main-content .material-list-page .tag-off {
+  background: rgba(15, 35, 68, 0.6) !important;
+  color: var(--cockpit-text-muted) !important;
+  border-color: var(--cockpit-border) !important;
+}
+
+.main-content .material-list-page .pagination {
+  padding: 12px 0 0;
+}
+
+.main-content .material-list-page .page-btn,
+.main-content .material-list-page .page-controls select {
+  background: rgba(4, 12, 28, 0.75) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .material-list-page .page-current {
+  color: var(--cockpit-accent-soft) !important;
+}
+
+.main-content .material-list-page .mini-btn {
+  background: rgba(4, 12, 28, 0.65) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .material-list-page .modal-panel {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .material-list-page .form-grid label,
+.main-content .material-list-page .kv-label,
+.main-content .material-list-page .stock-meta {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .material-list-page .form-grid input,
+.main-content .material-list-page .form-grid select {
+  background: rgba(4, 12, 28, 0.85) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+.main-content .material-list-page .kv-row,
+.main-content .material-list-page .log-item {
+  background: rgba(4, 12, 28, 0.5) !important;
+  border-color: var(--cockpit-border) !important;
+}
+
+.main-content .material-list-page .kv-value,
+.main-content .material-list-page .log-type,
+.main-content .material-list-page .log-reason {
+  color: var(--cockpit-text) !important;
+}
+
+/* ========== 农场详情入口（管理员选农场） ========== */
+.main-content .farm-detail-entry-page {
+  padding: var(--space-6);
+  max-width: 960px;
+}
+
+.main-content .farm-detail-entry-loading {
+  color: var(--cockpit-text-muted);
+  font-size: 15px;
+}
+
+.main-content .farm-detail-entry-header {
+  margin-bottom: var(--space-6);
+}
+
+.main-content .farm-detail-entry-title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--cockpit-heading);
+  margin-bottom: var(--space-3);
+}
+
+.main-content .farm-detail-entry-desc {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--cockpit-text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+.main-content .farm-detail-entry-link {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--cockpit-accent-soft);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(34, 211, 238, 0.35);
+}
+
+.main-content .farm-detail-entry-link:hover {
+  color: #a5f3fc;
+  border-bottom-color: var(--cockpit-accent);
+}
+
+.main-content .farm-detail-entry-link--inline {
+  margin-top: var(--space-2);
+}
+
+.main-content .farm-detail-entry-error {
+  color: var(--cockpit-danger);
+  margin-bottom: var(--space-4);
+  line-height: 1.5;
+}
+
+.main-content .farm-detail-entry-card {
+  padding: var(--space-5);
+  background: var(--cockpit-panel);
+  border: 1px solid var(--cockpit-border);
+  border-radius: var(--radius-lg);
+}
+
+.main-content .farm-detail-entry-card--narrow {
+  max-width: 480px;
+}
+
+.main-content .farm-detail-entry-empty {
+  color: var(--cockpit-text-muted);
+  margin-bottom: var(--space-4);
+}
+
+.main-content .farm-detail-entry-grid {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
+}
+
+.main-content .farm-detail-entry-item {
+  width: 100%;
+  text-align: left;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--cockpit-border);
+  background: rgba(4, 12, 28, 0.55);
+  color: var(--cockpit-text);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s,
+    box-shadow 0.2s;
+}
+
+.main-content .farm-detail-entry-item:hover {
+  border-color: var(--cockpit-border-strong);
+  background: rgba(34, 211, 238, 0.08);
+  box-shadow: var(--shadow-glow);
+}
+
+.main-content .farm-detail-entry-item-name {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cockpit-heading);
+  margin-bottom: 6px;
+}
+
+.main-content .farm-detail-entry-item-meta {
+  display: block;
+  font-size: 13px;
+  color: var(--cockpit-text-muted);
+}

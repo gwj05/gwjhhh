@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import * as echarts from 'echarts'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { notifyWarningChanged } from '../utils/warningEvents'
@@ -68,77 +67,87 @@ const WarningStats = () => {
   }
 
   useEffect(() => {
+    let cancelled = false
     const palette = ['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4']
-
-    disposeAll()
-    if (chartStatusRef.current) {
-      instStatus.current = echarts.init(chartStatusRef.current)
-      instStatus.current.setOption({
-        tooltip: { trigger: 'item' },
-        series: [{
-          type: 'pie',
-          radius: ['36%', '68%'],
-          data: (stats.by_status || []).map((r) => ({
-            name: r.name || '未知',
-            value: r.value
-          })),
-          itemStyle: { color: (p) => palette[p.dataIndex % palette.length] },
-          label: { formatter: '{b}\n{c} ({d}%)' }
-        }]
-      })
-    }
-
-    if (chartTypeRef.current) {
-      instType.current = echarts.init(chartTypeRef.current)
-      const names = (stats.by_type || []).map((r) => r.name || '未知')
-      const vals = (stats.by_type || []).map((r) => r.value)
-      instType.current.setOption({
-        tooltip: { trigger: 'axis' },
-        grid: { left: 48, right: 16, top: 24, bottom: names.length > 6 ? 80 : 48 },
-        xAxis: { type: 'category', data: names, axisLabel: { rotate: 24, interval: 0, fontSize: 11 } },
-        yAxis: { type: 'value', minInterval: 1 },
-        series: [{
-          type: 'bar',
-          data: vals,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#67c23a' },
-              { offset: 1, color: '#b3e19d' }
-            ])
-          }
-        }]
-      })
-    }
-
-    if (chartFarmRef.current) {
-      instFarm.current = echarts.init(chartFarmRef.current)
-      const names = (stats.by_farm || []).map((r) => r.name || '未知')
-      const vals = (stats.by_farm || []).map((r) => r.value)
-      instFarm.current.setOption({
-        tooltip: { trigger: 'axis' },
-        grid: { left: 48, right: 16, top: 24, bottom: 48 },
-        xAxis: { type: 'category', data: names, axisLabel: { rotate: names.length > 4 ? 20 : 0, interval: 0 } },
-        yAxis: { type: 'value', minInterval: 1 },
-        series: [{
-          type: 'bar',
-          data: vals,
-          itemStyle: {
-            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-              { offset: 0, color: '#e6a23c' },
-              { offset: 1, color: '#f3d19e' }
-            ])
-          }
-        }]
-      })
-    }
 
     const onResize = () => {
       instStatus.current?.resize()
       instType.current?.resize()
       instFarm.current?.resize()
     }
+
+    const run = async () => {
+      const mod = await import('echarts')
+      if (cancelled) return
+      const echarts = mod.default || mod
+
+      disposeAll()
+      if (chartStatusRef.current) {
+        instStatus.current = echarts.init(chartStatusRef.current)
+        instStatus.current.setOption({
+          tooltip: { trigger: 'item' },
+          series: [{
+            type: 'pie',
+            radius: ['36%', '68%'],
+            data: (stats.by_status || []).map((r) => ({
+              name: r.name || '未知',
+              value: r.value
+            })),
+            itemStyle: { color: (p) => palette[p.dataIndex % palette.length] },
+            label: { formatter: '{b}\n{c} ({d}%)' }
+          }]
+        })
+      }
+
+      if (chartTypeRef.current) {
+        instType.current = echarts.init(chartTypeRef.current)
+        const names = (stats.by_type || []).map((r) => r.name || '未知')
+        const vals = (stats.by_type || []).map((r) => r.value)
+        instType.current.setOption({
+          tooltip: { trigger: 'axis' },
+          grid: { left: 48, right: 16, top: 24, bottom: names.length > 6 ? 80 : 48 },
+          xAxis: { type: 'category', data: names, axisLabel: { rotate: 24, interval: 0, fontSize: 11 } },
+          yAxis: { type: 'value', minInterval: 1 },
+          series: [{
+            type: 'bar',
+            data: vals,
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#67c23a' },
+                { offset: 1, color: '#b3e19d' }
+              ])
+            }
+          }]
+        })
+      }
+
+      if (chartFarmRef.current) {
+        instFarm.current = echarts.init(chartFarmRef.current)
+        const names = (stats.by_farm || []).map((r) => r.name || '未知')
+        const vals = (stats.by_farm || []).map((r) => r.value)
+        instFarm.current.setOption({
+          tooltip: { trigger: 'axis' },
+          grid: { left: 48, right: 16, top: 24, bottom: 48 },
+          xAxis: { type: 'category', data: names, axisLabel: { rotate: names.length > 4 ? 20 : 0, interval: 0 } },
+          yAxis: { type: 'value', minInterval: 1 },
+          series: [{
+            type: 'bar',
+            data: vals,
+            itemStyle: {
+              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                { offset: 0, color: '#e6a23c' },
+                { offset: 1, color: '#f3d19e' }
+              ])
+            }
+          }]
+        })
+      }
+    }
+
     window.addEventListener('resize', onResize)
+    run()
     return () => {
+      cancelled = true
       window.removeEventListener('resize', onResize)
       disposeAll()
     }
@@ -176,12 +185,14 @@ const WarningStats = () => {
           <label>结束日期</label>
           <input type="date" value={to} onChange={(e) => setTo(e.target.value)} />
         </div>
-        <button type="button" className="btn-primary" onClick={loadStats} disabled={loading}>查询</button>
-        {isAdmin ? (
-          <button type="button" className="btn-ghost" onClick={runRules} disabled={rulesLoading}>
-            {rulesLoading ? '扫描中…' : '手动触发规则扫描'}
-          </button>
-        ) : null}
+        <div className="warning-toolbar-actions">
+          <button type="button" className="btn-primary" onClick={loadStats} disabled={loading}>查询</button>
+          {isAdmin ? (
+            <button type="button" className="btn-ghost" onClick={runRules} disabled={rulesLoading}>
+              {rulesLoading ? '扫描中…' : '手动触发规则扫描'}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="warning-stats-summary">

@@ -170,12 +170,14 @@ const WarningDevice = () => {
             </select>
           </div>
         ) : null}
-        <button type="button" className="btn-primary" style={{ marginLeft: 'auto' }} onClick={openAdd}>
-          新增设备
-        </button>
-        <button type="button" className="btn-ghost" onClick={loadDevices} disabled={loading}>
-          刷新
-        </button>
+        <div className="warning-toolbar-actions">
+          <button type="button" className="btn-primary" onClick={openAdd}>
+            新增设备
+          </button>
+          <button type="button" className="btn-ghost" onClick={loadDevices} disabled={loading}>
+            刷新
+          </button>
+        </div>
       </div>
 
       <div className="warning-table-card">

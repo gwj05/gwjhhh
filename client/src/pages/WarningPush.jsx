@@ -80,9 +80,11 @@ const WarningPush = () => {
             </select>
           </div>
         ) : null}
-        <button type="button" className="btn-ghost" style={{ marginLeft: 'auto' }} onClick={loadPushes} disabled={loading}>
-          刷新
-        </button>
+        <div className="warning-toolbar-actions">
+          <button type="button" className="btn-ghost" onClick={loadPushes} disabled={loading}>
+            刷新
+          </button>
+        </div>
       </div>
 
       <div className="warning-table-card">

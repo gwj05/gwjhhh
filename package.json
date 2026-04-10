@@ -7,7 +7,10 @@
     "dev": "concurrently \"npm run server\" \"npm run client\"",
     "server": "cd server && nodemon index.js",
     "client": "cd client && npm run dev",
-    "install-all": "npm install && cd server && npm install && cd ../client && npm install"
+    "build:client": "cd client && npm run build",
+    "serve": "npm run build:client && cd server && node index.js",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "migrate:demo-videos": "cd server && node scripts/apply-demo-video-urls.js"
   },
   "keywords": [
     "agriculture",

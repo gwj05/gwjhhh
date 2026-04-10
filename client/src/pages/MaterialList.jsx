@@ -3,6 +3,9 @@ import api from '../utils/api'
 import { notifyInventoryChanged } from '../utils/inventoryEvents'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import { useToast } from '../ui/Toast/ToastProvider'
+import { getErrorMessage } from '../utils/errorMessage'
+import Button from '../ui/Button/Button'
 import './MaterialList.css'
 
 const MATERIAL_TYPES = [
@@ -41,10 +44,13 @@ const MaterialList = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
-  const [toast, setToast] = useState(null)
+  const toast = useToast()
+
   const showToast = (message, kind = 'success') => {
-    setToast({ message, kind })
-    setTimeout(() => setToast(null), 2600)
+    if (kind === 'error') toast.error(message)
+    else if (kind === 'warn') toast.warn(message)
+    else if (kind === 'info') toast.info(message)
+    else toast.success(message)
   }
 
   const fetchMaterials = useCallback(async () => {
@@ -64,7 +70,7 @@ const MaterialList = () => {
       setTotal(res.data?.total || 0)
     } catch (e) {
       console.error('加载农资列表失败', e)
-      showToast(e.response?.data?.message || '加载失败', 'error')
+      toast.error(getErrorMessage(e, '加载失败'))
     } finally {
       setLoading(false)
     }
@@ -135,30 +141,30 @@ const MaterialList = () => {
 
   const validateForm = () => {
     if (!form.material_name?.trim()) {
-      showToast('农资名称为必填', 'error')
+      showToast('农资名称为必填', 'warn')
       return false
     }
     if (!form.material_type) {
-      showToast('农资类型为必填', 'error')
+      showToast('农资类型为必填', 'warn')
       return false
     }
     const p = Number(form.price)
     if (Number.isNaN(p) || p < 0) {
-      showToast('单价必须为非负数', 'error')
+      showToast('单价必须为非负数', 'warn')
       return false
     }
     const sn = Number(form.stock_num)
     if (Number.isNaN(sn) || sn < 0) {
-      showToast('库存数量必须为非负数', 'error')
+      showToast('库存数量必须为非负数', 'warn')
       return false
     }
     const ss = Number(form.safety_stock_num)
     if (Number.isNaN(ss) || ss < 0) {
-      showToast('安全库存必须为非负数', 'error')
+      showToast('安全库存必须为非负数', 'warn')
       return false
     }
     if (isAdmin && !formFarmId) {
-      showToast('请选择所属农场', 'error')
+      showToast('请选择所属农场', 'warn')
       return false
     }
     return true
@@ -536,12 +542,7 @@ const MaterialList = () => {
         </div>
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div className={`toast ${toast.kind}`}>
-          {toast.message}
-        </div>
-      )}
+      {/* Toast：已迁移为全局 ToastProvider */}
 
       {/* 新增/编辑 */}
       {formModalOpen && (

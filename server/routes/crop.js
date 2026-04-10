@@ -871,6 +871,7 @@ router.get('/cycle/list', authenticateToken, async (req, res) => {
 
     const roleId = user.role_id
     const userFarmId = user.farm_id
+    const requestedFarmId = req.query.farm_id != null && req.query.farm_id !== '' ? Number(req.query.farm_id) : null
 
     // 获取作物列表（权限过滤与 crop/list 一致）
     let whereSql = 'WHERE 1=1'
@@ -881,6 +882,9 @@ router.get('/cycle/list', authenticateToken, async (req, res) => {
       }
       whereSql += ' AND c.farm_id = ?'
       whereParams.push(userFarmId)
+    } else if (requestedFarmId) {
+      whereSql += ' AND c.farm_id = ?'
+      whereParams.push(requestedFarmId)
     }
 
     const [crops] = await pool.execute(

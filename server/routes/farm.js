@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../config/database');
 const authenticateToken = require('../middleware/auth');
+const { assertFarmAccess, getScopedFarmId, isNoFarmForNonAdmin } = require('../lib/dataScope');
 
 // ---------- 工具：创建时间字段兼容 ----------
 // 若无 created_at，就用 farm_id 近似创建时间
@@ -22,7 +23,7 @@ router.get('/list', authenticateToken, async (req, res) => {
     } = req.query;
     const offset = (page - 1) * pageSize;
     const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, req.query.farm_id);
     // 排序字段白名单
     const sortFieldMap = {
       farm_name: 'f.farm_name',
@@ -34,12 +35,12 @@ router.get('/list', authenticateToken, async (req, res) => {
     let whereSql = 'WHERE 1=1';
     const whereParams = [];
 
-    if (roleId !== 1) {
-      if (!farmId) {
-        return res.json({ data: [], total: 0, page: parseInt(page), pageSize: parseInt(pageSize) });
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json({ data: [], total: 0, page: parseInt(page), pageSize: parseInt(pageSize) });
+    }
+    if (roleId !== 1 || scopedFarmId) {
       whereSql += ' AND f.farm_id = ?';
-      whereParams.push(farmId);
+      whereParams.push(scopedFarmId);
     }
     if (farm_name) {
       whereSql += ' AND f.farm_name LIKE ?';
@@ -209,12 +210,7 @@ router.get('/list', authenticateToken, async (req, res) => {
 router.get('/overview/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权查看该农场概览' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     // 最新环境数据
     const [envRows] = await pool.execute(
@@ -260,17 +256,17 @@ router.get('/overview/:id', authenticateToken, async (req, res) => {
 router.get('/export', authenticateToken, async (req, res) => {
   try {
     const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, req.query.farm_id);
 
     let whereSql = 'WHERE 1=1';
     const params = [];
 
-    if (roleId !== 1) {
-      if (!farmId) {
-        return res.status(200).send('farm_name,address,principal_name\n');
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.status(200).send('farm_name,address,principal_name\n');
+    }
+    if (roleId !== 1 || scopedFarmId) {
       whereSql += ' AND f.farm_id = ?';
-      params.push(farmId);
+      params.push(scopedFarmId);
     }
 
     const [rows] = await pool.execute(
@@ -304,13 +300,8 @@ router.get('/export', authenticateToken, async (req, res) => {
 router.get('/detail/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
     // 数据权限检查
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权访问此农场信息' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     const [farms] = await pool.execute(
       `SELECT f.*, u.real_name as principal_name, u.phone as principal_phone
@@ -440,13 +431,8 @@ router.put('/update/:id', authenticateToken, async (req, res) => {
       soil_quality_level,
       remark
     } = req.body;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
     // 操作权限检查
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权修改此农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     if (!farm_name) {
       return res.status(400).json({ message: '农场名称不能为空' });
@@ -513,12 +499,7 @@ router.delete('/delete/:id', authenticateToken, async (req, res) => {
 router.get('/:id/crops', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权查看该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     const [rows] = await pool.execute(
       `SELECT crop_id, crop_type, plant_area, sow_time 
@@ -537,12 +518,7 @@ router.post('/:id/crops', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { crop_type, plant_area, sow_time } = req.body;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权操作该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
     if (!crop_type || !plant_area || !sow_time) {
       return res.status(400).json({ message: '请填写完整的作物信息' });
     }
@@ -563,12 +539,7 @@ router.put('/:id/crops/:cropId', authenticateToken, async (req, res) => {
   try {
     const { id, cropId } = req.params;
     const { crop_type, plant_area, sow_time } = req.body;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权操作该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     const [result] = await pool.execute(
       `UPDATE crop SET crop_type=?, plant_area=?, sow_time=? WHERE crop_id=? AND farm_id=?`,
@@ -588,12 +559,7 @@ router.put('/:id/crops/:cropId', authenticateToken, async (req, res) => {
 router.delete('/:id/crops/:cropId', authenticateToken, async (req, res) => {
   try {
     const { id, cropId } = req.params;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权操作该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     const [result] = await pool.execute(
       `DELETE FROM crop WHERE crop_id=? AND farm_id=?`,
@@ -613,12 +579,7 @@ router.delete('/:id/crops/:cropId', authenticateToken, async (req, res) => {
 router.get('/:id/devices', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权查看该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     const [rows] = await pool.execute(
       `SELECT device_id, device_name, install_location, device_status, monitor_area, device_category
@@ -637,12 +598,7 @@ router.post('/:id/devices', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { device_name, install_location, device_status, monitor_area, device_category } = req.body;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权操作该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
     if (!device_name || !install_location || !device_status || !monitor_area) {
       return res.status(400).json({ message: '请填写完整的设备信息' });
     }
@@ -665,12 +621,7 @@ router.put('/:id/devices/:deviceId', authenticateToken, async (req, res) => {
   try {
     const { id, deviceId } = req.params;
     const { device_name, install_location, device_status, monitor_area, device_category } = req.body;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权操作该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     const [result] = await pool.execute(
       `UPDATE monitor_device 
@@ -692,12 +643,7 @@ router.put('/:id/devices/:deviceId', authenticateToken, async (req, res) => {
 router.delete('/:id/devices/:deviceId', authenticateToken, async (req, res) => {
   try {
     const { id, deviceId } = req.params;
-    const roleId = req.user.role_id;
-    const farmId = req.user.farm_id;
-
-    if (roleId !== 1 && farmId !== parseInt(id)) {
-      return res.status(403).json({ message: '无权操作该农场' });
-    }
+    assertFarmAccess(req.user, parseInt(id));
 
     const [result] = await pool.execute(
       `DELETE FROM monitor_device WHERE device_id=? AND farm_id=?`,

@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { writeAuditLog, clientIp } = require('../lib/auditLog');
 // 注册接口（仅允许注册普通用户角色）
 router.post('/register', async (req, res) => {
   try {
@@ -55,12 +56,25 @@ router.post('/login', async (req, res) => {
       [username]
     );
     if (users.length === 0) {
+      writeAuditLog(pool, {
+        action: 'auth.login_failed',
+        username,
+        detail: { reason: 'user_not_found' },
+        ip: clientIp(req)
+      });
       return res.status(401).json({ message: '用户名或密码错误' });
     }
     const user = users[0];
     // 验证密码
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
+      writeAuditLog(pool, {
+        action: 'auth.login_failed',
+        user_id: user.user_id,
+        username: user.username,
+        detail: { reason: 'bad_password' },
+        ip: clientIp(req)
+      });
       return res.status(401).json({ message: '用户名或密码错误' });
     }
     // 生成JWT token
@@ -74,6 +88,14 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+    writeAuditLog(pool, {
+      action: 'auth.login',
+      user_id: user.user_id,
+      username: user.username,
+      detail: { role_id: user.role_id },
+      ip: clientIp(req)
+    });
+
     // 返回用户信息（不包含密码）
     res.json({
       message: '登录成功',

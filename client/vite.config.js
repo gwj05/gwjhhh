@@ -9,6 +9,21 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true
+      },
+      '/demo-video': {
+        target: 'http://localhost:5000',
+        changeOrigin: true
+      }
+    }
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          echarts: ['echarts'],
+          redux: ['@reduxjs/toolkit', 'react-redux']
+        }
       }
     }
   }

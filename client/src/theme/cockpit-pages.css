@@ -1,0 +1,204 @@
+/**
+ * 业务页深色驾驶舱覆盖层：路由均在 .main-content 内渲染时生效
+ * 与各页原有 class 并存，用更高语境选择器统一质感
+ */
+
+/* —— 表单控件 —— */
+.main-content input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.main-content select,
+.main-content textarea {
+  background: rgba(6, 18, 38, 0.92) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+  border-radius: var(--radius-md);
+}
+.main-content input::placeholder,
+.main-content textarea::placeholder {
+  color: var(--cockpit-text-muted);
+}
+.main-content input:focus,
+.main-content select:focus,
+.main-content textarea:focus {
+  outline: none;
+  border-color: var(--cockpit-border-strong) !important;
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.15);
+}
+
+/* —— 主按钮 / 线框按钮（多页复用 class 名） —— */
+.main-content .primary-btn {
+  background: linear-gradient(135deg, #0e7490 0%, #0891b2 40%, #22d3ee 100%) !important;
+  color: #f0fdfa !important;
+  border: 1px solid rgba(34, 211, 238, 0.45) !important;
+  box-shadow: var(--shadow-glow);
+  font-weight: 700;
+}
+.main-content .primary-btn:hover:not(:disabled) {
+  filter: brightness(1.08);
+  box-shadow: 0 0 28px rgba(34, 211, 238, 0.28);
+}
+.main-content .outline-btn {
+  background: rgba(15, 35, 68, 0.5) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+.main-content .outline-btn:hover:not(:disabled) {
+  border-color: var(--cockpit-border-strong) !important;
+  color: var(--cockpit-text) !important;
+}
+.main-content .mini-btn {
+  background: rgba(15, 35, 68, 0.55) !important;
+  border-color: var(--cockpit-border) !important;
+  color: var(--cockpit-text-secondary) !important;
+}
+.main-content .page-btn,
+.main-content .sys-btn {
+  background: rgba(15, 35, 68, 0.55) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+}
+
+/* —— 表格通用 —— */
+.main-content table th {
+  background: rgba(8, 22, 48, 0.95) !important;
+  color: var(--cockpit-text-secondary) !important;
+  border-color: var(--cockpit-border) !important;
+}
+.main-content table td {
+  border-color: rgba(56, 189, 248, 0.12) !important;
+  color: var(--cockpit-text) !important;
+}
+.main-content table tr:hover td {
+  background: rgba(34, 211, 238, 0.06) !important;
+}
+
+/* —— 农场列表等页头 —— */
+.main-content .farm-list-header h2,
+.main-content .material-header h2,
+.main-content .op-header h2 {
+  color: var(--cockpit-heading) !important;
+}
+.main-content .farm-list-sub,
+.main-content .material-sub,
+.main-content .op-sub,
+.main-content .monitor-sub,
+.main-content .system-sub {
+  color: var(--cockpit-text-muted) !important;
+}
+
+/* —— 预警 / 系统 / 监控 / 运维 工具条与卡片 —— */
+.main-content .warning-toolbar,
+.main-content .warning-table-card,
+.main-content .warning-modal,
+.main-content .system-card,
+.main-content .system-filter,
+.main-content .filter-bar,
+.main-content .panel-card,
+.main-content .chart-wrap,
+.main-content .report-card,
+.main-content .trend-block,
+.main-content .filter-card,
+.main-content .table-card,
+.main-content .stat-card,
+.main-content .material-filter-card,
+.main-content .material-table-card,
+.main-content .farm-filter-card,
+.main-content .farm-table-wrap,
+.main-content .modal-panel,
+.main-content .sys-modal,
+.main-content .sys-role-card {
+  background: var(--cockpit-panel) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(12px);
+}
+
+.main-content .warning-module-header h2,
+.main-content .monitor-header h2,
+.main-content .system-header h2 {
+  color: var(--cockpit-heading) !important;
+}
+.main-content .warning-module-sub {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .warning-stat-card,
+.main-content .warning-chart-box {
+  background: rgba(8, 22, 48, 0.65) !important;
+  border: 1px solid var(--cockpit-border) !important;
+}
+.main-content .warning-stat-card .num,
+.main-content .warning-stat-card .lbl,
+.main-content .warning-chart-box h4 {
+  color: var(--cockpit-text) !important;
+}
+.main-content .warning-stat-card .lbl {
+  color: var(--cockpit-text-muted) !important;
+}
+
+.main-content .warning-data-table th,
+.main-content .system-table th {
+  background: rgba(6, 18, 38, 0.98) !important;
+}
+.main-content .warning-modal-overlay,
+.main-content .sys-modal-mask,
+.main-content .modal {
+  background: rgba(2, 6, 23, 0.72) !important;
+  backdrop-filter: blur(6px);
+}
+
+.main-content .warning-toast,
+.main-content .toast,
+.main-content .sys-toast {
+  background: var(--cockpit-panel-solid) !important;
+  border: 1px solid var(--cockpit-border) !important;
+  color: var(--cockpit-text) !important;
+  box-shadow: var(--shadow-md);
+}
+.main-content .toast.error,
+.main-content .warning-toast.error {
+  border-color: rgba(248, 113, 113, 0.45) !important;
+  background: rgba(60, 20, 25, 0.85) !important;
+  color: #fecaca !important;
+}
+
+.main-content .filter-item label,
+.main-content .warning-toolbar .field label,
+.main-content .system-filter label {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .panel-title,
+.main-content .report-card h4,
+.main-content .report-card .big,
+.main-content .metric-value {
+  color: var(--cockpit-heading) !important;
+}
+.main-content .metric-label,
+.main-content .panel-meta,
+.main-content .report-card .sub {
+  color: var(--cockpit-text-muted) !important;
+}
+.main-content .metric-cell {
+  background: rgba(6, 18, 38, 0.55) !important;
+  border-color: var(--cockpit-border) !important;
+}
+
+.main-content .pagination,
+.main-content .sys-pagebar,
+.main-content .warning-pagination {
+  color: var(--cockpit-text-secondary) !important;
+}
+
+.main-content .loading,
+.main-content .warning-empty {
+  color: var(--cockpit-text-muted) !important;
+}
+
+/* 农场列表等局部主色按钮（覆盖绿色渐变） */
+.main-content .farm-list-actions .primary-btn {
+  background: linear-gradient(135deg, #0e7490 0%, #0891b2 45%, #22d3ee 100%) !important;
+  color: #f0fdfa !important;
+  border: 1px solid rgba(34, 211, 238, 0.4) !important;
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.2);
+}
+

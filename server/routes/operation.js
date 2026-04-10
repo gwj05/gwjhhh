@@ -3,6 +3,7 @@ const router = express.Router()
 const pool = require('../config/database')
 const authenticateToken = require('../middleware/auth')
 const materialRouter = require('./material')
+const { assertFarmAccess, getScopedFarmId } = require('../lib/dataScope')
 
 let ensured = false
 async function ensureOperationSchema() {
@@ -32,15 +33,6 @@ async function ensureOperationSchema() {
   await addCol('source_type', `ALTER TABLE operation_record ADD COLUMN source_type VARCHAR(30) DEFAULT NULL COMMENT '业务来源：施肥/灌溉等'`)
 
   ensured = true
-}
-
-function assertFarmAccess(user, farmId) {
-  if (user.role_id === 1) return
-  if (!user.farm_id || String(user.farm_id) !== String(farmId)) {
-    const e = new Error('无权访问该农场数据')
-    e.status = 403
-    throw e
-  }
 }
 
 async function resolveUsageColumn() {
@@ -162,7 +154,7 @@ router.get('/suggest', authenticateToken, async (req, res) => {
     await ensureOperationSchema()
     const user = req.user
     const { operation_type, farm_id, area_name, crop_id } = req.query
-    const farmId = user.role_id === 1 ? farm_id : user.farm_id
+    const farmId = getScopedFarmId(user, farm_id)
     if (!farmId) return res.json({ tips: [] })
     assertFarmAccess(user, farmId)
 
@@ -234,7 +226,7 @@ router.get('/list', authenticateToken, async (req, res) => {
 
     let where = 'WHERE 1=1'
     const params = []
-    const effectiveFarmId = user.role_id === 1 ? farm_id : user.farm_id
+    const effectiveFarmId = getScopedFarmId(user, farm_id)
     if (effectiveFarmId) {
       where += ' AND o.farm_id = ?'
       params.push(effectiveFarmId)
@@ -346,7 +338,7 @@ router.post('/create', authenticateToken, async (req, res) => {
       remark
     } = req.body || {}
     if (!['施肥', '灌溉'].includes(operation_type)) return res.status(400).json({ message: '操作类型仅支持施肥/灌溉' })
-    const targetFarmId = user.role_id === 1 ? farm_id : user.farm_id
+    const targetFarmId = getScopedFarmId(user, farm_id)
     if (!targetFarmId) return res.status(400).json({ message: '请选择农场' })
     assertFarmAccess(user, targetFarmId)
     if (!area_name) return res.status(400).json({ message: '请选择种植区域' })

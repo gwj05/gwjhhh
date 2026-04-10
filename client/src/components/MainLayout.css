@@ -1,19 +1,42 @@
 .main-layout {
   display: flex;
   min-height: 100vh;
-  background: #f5f7fa;
+  position: relative;
+  background: var(--cockpit-deep);
+}
+
+/* 数据大屏网格底纹 */
+.main-layout::before {
+  content: '';
+  position: fixed;
+  left: var(--sidebar-width);
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--cockpit-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--cockpit-grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  opacity: 0.45;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 8%, #000 30%, transparent 72%);
 }
 
 .main-content-wrapper {
   flex: 1;
-  margin-left: 240px;
+  margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 .main-content {
-  margin-top: 60px;
-  padding: 30px;
-  min-height: calc(100vh - 60px);
+  margin-top: var(--topbar-height);
+  padding: var(--space-6) var(--space-7);
+  min-height: calc(100vh - var(--topbar-height));
+  color: var(--cockpit-text);
+  position: relative;
+  z-index: 1;
 }
-

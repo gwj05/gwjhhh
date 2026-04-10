@@ -3,6 +3,7 @@ const router = express.Router()
 const pool = require('../config/database')
 const authenticateToken = require('../middleware/auth')
 const { triggerEnvironmentWarning } = require('../lib/smartWarning')
+const { getScopedFarmId, isNoFarmForNonAdmin, assertFarmAccess } = require('../lib/dataScope')
 
 let schemaReady = false
 const simState = new Map()
@@ -51,15 +52,6 @@ async function ensureEnvSchema() {
   `)
 
   schemaReady = true
-}
-
-function assertFarmAccess(user, farmId) {
-  if (user.role_id === 1) return
-  if (!user.farm_id || String(user.farm_id) !== String(farmId)) {
-    const e = new Error('无权访问该农场数据')
-    e.status = 403
-    throw e
-  }
 }
 
 function evalMetrics(row) {
@@ -251,7 +243,7 @@ router.get('/areas', authenticateToken, async (req, res) => {
     await ensureEnvSchema()
     const user = req.user
     const { farm_id } = req.query
-    const fid = user.role_id === 1 ? farm_id : user.farm_id
+    const fid = getScopedFarmId(user, farm_id)
     if (!fid) {
       const [farms] =
         user.role_id === 1
@@ -278,8 +270,8 @@ router.get('/latest', authenticateToken, async (req, res) => {
     await ensureEnvSchema()
     const user = req.user
     const { farm_id, plant_area } = req.query
-    const fid = user.role_id === 1 ? farm_id || null : user.farm_id
-    if (user.role_id !== 1 && !fid) {
+    const fid = getScopedFarmId(user, farm_id)
+    if (isNoFarmForNonAdmin(user, fid)) {
       return res.json({ panels: [], hints: [], generated_at: new Date().toISOString() })
     }
 
@@ -350,7 +342,8 @@ router.get('/history', authenticateToken, async (req, res) => {
     await ensureEnvSchema()
     const user = req.user
     const { farm_id, plant_area, from, to, limit = 500 } = req.query
-    const fid = user.role_id === 1 ? farm_id : user.farm_id
+    const fid = getScopedFarmId(user, farm_id)
+    if (isNoFarmForNonAdmin(user, fid)) return res.status(400).json({ message: '请选择农场' })
     if (!fid) return res.status(400).json({ message: '请选择农场' })
     assertFarmAccess(user, fid)
 
@@ -393,7 +386,8 @@ router.get('/report', authenticateToken, async (req, res) => {
     await ensureEnvSchema()
     const user = req.user
     const { farm_id, plant_area, from, to } = req.query
-    const fid = user.role_id === 1 ? farm_id : user.farm_id
+    const fid = getScopedFarmId(user, farm_id)
+    if (isNoFarmForNonAdmin(user, fid)) return res.status(400).json({ message: '请选择农场' })
     if (!fid) return res.status(400).json({ message: '请选择农场' })
     assertFarmAccess(user, fid)
 

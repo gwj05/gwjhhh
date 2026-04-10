@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import * as echarts from 'echarts'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import {
@@ -13,7 +12,7 @@ import {
 import './MonitorPages.css'
 
 const MonitorHistory = () => {
-  const { user } = useAuth()
+  const { user, currentFarmId } = useAuth()
   const isAdmin = user?.role_id === 1
   const chartRef = useRef(null)
   const chartInst = useRef(null)
@@ -46,9 +45,18 @@ const MonitorHistory = () => {
     else loadAreas()
   }, [isAdmin, farmId, loadAreas])
 
+  // 与顶栏「全局农场」一致：管理员选中某农场时同步到本页筛选
   useEffect(() => {
-    if (isAdmin && !farmId && farms.length === 1) setFarmId(String(farms[0].farm_id))
-  }, [isAdmin, farms, farmId])
+    if (!isAdmin) return
+    if (currentFarmId) setFarmId(String(currentFarmId))
+    else setFarmId('')
+  }, [isAdmin, currentFarmId])
+
+  useEffect(() => {
+    if (isAdmin && !currentFarmId && !farmId && farms.length === 1) {
+      setFarmId(String(farms[0].farm_id))
+    }
+  }, [isAdmin, currentFarmId, farms, farmId])
 
   const loadHistory = useCallback(async () => {
     const fid = isAdmin ? farmId : undefined
@@ -89,8 +97,12 @@ const MonitorHistory = () => {
   useEffect(() => {
     const el = chartRef.current
     if (!el) return
-    if (!chartInst.current) chartInst.current = echarts.init(el)
-    const c = chartInst.current
+    let cancelled = false
+
+    const applyChart = (echarts) => {
+      if (!chartRef.current) return
+      if (!chartInst.current) chartInst.current = echarts.init(chartRef.current)
+      const c = chartInst.current
 
     const { axisMode, fromMs, toMs, aggregated } = chartMeta
     const axisFmt = axisMode
@@ -190,6 +202,17 @@ const MonitorHistory = () => {
       ]
     }
     c.setOption(opt, true)
+    }
+
+    ;(async () => {
+      const mod = await import('echarts')
+      if (cancelled) return
+      const echarts = mod.default || mod
+      applyChart(echarts)
+    })()
+    return () => {
+      cancelled = true
+    }
   }, [chartMeta])
 
   useEffect(() => {

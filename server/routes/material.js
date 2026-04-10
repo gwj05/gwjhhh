@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../config/database')
 const authenticateToken = require('../middleware/auth')
+const { assertFarmAccess, getScopedFarmId, isNoFarmForNonAdmin } = require('../lib/dataScope')
 
 let ensured = false
 let usageColumnCache = null
@@ -141,6 +142,25 @@ async function ensureMaterialTables() {
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     `)
 
+    // 库存预警处理状态（幂等）
+    await pool.execute(`
+      CREATE TABLE IF NOT EXISTS material_warning_handle (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        farm_id INT NOT NULL,
+        material_id INT NOT NULL,
+        handle_status VARCHAR(20) NOT NULL DEFAULT '未处理' COMMENT '未处理/已处理',
+        handle_time DATETIME DEFAULT NULL,
+        handler_id INT DEFAULT NULL,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uk_mwh_farm_material (farm_id, material_id),
+        FOREIGN KEY (farm_id) REFERENCES farm(farm_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (material_id) REFERENCES agricultural_material(material_id) ON DELETE CASCADE ON UPDATE CASCADE,
+        FOREIGN KEY (handler_id) REFERENCES user(user_id) ON DELETE SET NULL ON UPDATE CASCADE,
+        INDEX idx_mwh_status (handle_status),
+        INDEX idx_mwh_time (updated_at)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `)
+
     ensured = true
   } catch (error) {
     ensured = false
@@ -195,15 +215,6 @@ function computedStockCase() {
 function assertRole(req, allowedRoles) {
   if (!allowedRoles.includes(req.user.role_id)) {
     const err = new Error('无权限')
-    err.status = 403
-    throw err
-  }
-}
-
-function assertFarmAccess(user, farmId) {
-  if (user.role_id === 1) return
-  if (!user.farm_id || String(user.farm_id) !== String(farmId)) {
-    const err = new Error('无权访问该数据')
     err.status = 403
     throw err
   }
@@ -287,16 +298,19 @@ router.get('/list', authenticateToken, async (req, res) => {
     } = req.query
 
     const roleId = req.user.role_id
-    const farmId = req.user.farm_id
 
     const offset = (Number(page) - 1) * Number(pageSize)
 
     const params = []
     let whereSql = 'WHERE 1=1'
 
-    if (roleId !== 1) {
+    const scopedFarmId = getScopedFarmId(req.user, farmFilterId)
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json({ data: [], total: 0, page: Number(page), pageSize: Number(pageSize), stats: { total_materials: 0, low_count: 0, out_count: 0, warning_total: 0 } })
+    }
+    if (scopedFarmId) {
       whereSql += ' AND m.farm_id = ?'
-      params.push(farmId)
+      params.push(scopedFarmId)
     } else if (farmFilterId) {
       whereSql += ' AND m.farm_id = ?'
       params.push(farmFilterId)
@@ -890,9 +904,12 @@ router.get('/warnings', authenticateToken, async (req, res) => {
           m.material_type,
           m.stock_num,
           m.safety_stock_num,
+          COALESCE(mwh.handle_status, '未处理') AS handle_status,
           ${stateExpr} AS stock_state
         FROM agricultural_material m
         INNER JOIN farm f ON m.farm_id = f.farm_id
+        LEFT JOIN material_warning_handle mwh
+          ON mwh.farm_id = m.farm_id AND mwh.material_id = m.material_id
         ${whereSql}
         ORDER BY (CASE WHEN (${stateExpr}) = '缺货' THEN 0 ELSE 1 END), m.stock_num ASC, m.material_id DESC
         LIMIT ${Number(pageSize)} OFFSET ${Number(offset)}
@@ -939,6 +956,40 @@ router.get('/warnings', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('material/warnings error:', error)
     res.status(error.status || 500).json({ message: '服务器错误', error: error.message })
+  }
+})
+
+// -------------- 库存预警：标记处理状态 --------------
+router.put('/warnings/:materialId/status', authenticateToken, async (req, res) => {
+  try {
+    await ensureMaterialTables()
+    const { materialId } = req.params
+    const { handle_status } = req.body || {}
+    if (!['未处理', '已处理'].includes(handle_status)) {
+      return res.status(400).json({ message: '状态不合法' })
+    }
+    const [rows] = await pool.execute(
+      `SELECT material_id, farm_id FROM agricultural_material WHERE material_id = ?`,
+      [Number(materialId)]
+    )
+    if (!rows?.length) return res.status(404).json({ message: '农资不存在' })
+    const mat = rows[0]
+    assertFarmAccess(req.user, mat.farm_id)
+
+    const handlerId = req.user.user_id
+    const ht = handle_status === '已处理' ? new Date() : null
+    await pool.execute(
+      `
+        INSERT INTO material_warning_handle (farm_id, material_id, handle_status, handle_time, handler_id)
+        VALUES (?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE handle_status = VALUES(handle_status), handle_time = VALUES(handle_time), handler_id = VALUES(handler_id)
+      `,
+      [mat.farm_id, mat.material_id, handle_status, ht, handlerId]
+    )
+    res.json({ message: '状态已更新' })
+  } catch (error) {
+    console.error('material/warnings status error:', error)
+    res.status(error.status || 500).json({ message: error.message || '服务器错误', error: error.message })
   }
 })
 

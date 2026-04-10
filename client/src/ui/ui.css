@@ -1,0 +1,119 @@
+.ui-toast-stack {
+  position: fixed;
+  top: calc(var(--topbar-height) + 14px);
+  right: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 2000;
+  max-width: min(420px, calc(100vw - 32px));
+}
+
+.ui-toast {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--cockpit-border);
+  background: rgba(6, 18, 38, 0.95);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(34, 211, 238, 0.08);
+  color: var(--cockpit-text);
+  backdrop-filter: blur(10px);
+}
+
+.ui-toast-message {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--cockpit-text-secondary);
+  word-break: break-word;
+}
+
+.ui-toast-close {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  color: var(--color-text-3);
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.ui-toast-close:hover {
+  background: rgba(34, 211, 238, 0.12);
+  color: var(--cockpit-accent-soft);
+}
+
+.ui-toast-info {
+  border-left: 4px solid var(--color-info);
+}
+
+.ui-toast-success {
+  border-left: 4px solid var(--color-success);
+}
+
+.ui-toast-warn {
+  border-left: 4px solid var(--color-warning);
+}
+
+.ui-toast-error {
+  border-left: 4px solid var(--color-danger);
+}
+
+/* Buttons */
+.ui-btn {
+  border: 1px solid var(--cockpit-border);
+  background: rgba(15, 35, 68, 0.65);
+  color: var(--cockpit-text-secondary);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s, opacity 0.15s;
+  font-weight: 700;
+}
+
+.ui-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.ui-btn:hover:not(:disabled) {
+  background: rgba(34, 211, 238, 0.12);
+  border-color: var(--cockpit-border-strong);
+  color: var(--cockpit-text);
+  transform: translateY(-1px);
+}
+
+.ui-btn-md {
+  padding: 8px 14px;
+  font-size: 13px;
+}
+
+.ui-btn-sm {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
+.ui-btn-primary {
+  background: linear-gradient(135deg, rgba(14, 116, 144, 0.5), rgba(34, 211, 238, 0.25));
+  border-color: rgba(34, 211, 238, 0.45);
+  color: #ecfeff;
+  box-shadow: 0 0 16px rgba(34, 211, 238, 0.15);
+}
+
+.ui-btn-outline {
+  background: rgba(8, 22, 48, 0.6);
+}
+
+.ui-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+}
+
+.ui-btn-danger {
+  background: rgba(127, 29, 29, 0.35);
+  border-color: rgba(248, 113, 113, 0.4);
+  color: #fecaca;
+}
+

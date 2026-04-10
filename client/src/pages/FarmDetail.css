@@ -832,11 +832,14 @@
 
 .form-grid input,
 .form-grid select {
-  height: 32px;
+  box-sizing: border-box;
+  min-height: 40px;
+  height: auto;
   border-radius: 6px;
   border: 1px solid #dcdcdc;
-  padding: 4px 8px;
-  font-size: 13px;
+  padding: 8px 10px;
+  font-size: 14px;
+  line-height: 1.45;
   transition: all 0.2s;
 }
 
@@ -954,11 +957,14 @@
 
 .form-inline input,
 .form-inline select {
-  height: 32px;
+  box-sizing: border-box;
+  min-height: 40px;
+  height: auto;
   border-radius: 6px;
   border: 1px solid #dcdcdc;
-  padding: 4px 8px;
-  font-size: 13px;
+  padding: 8px 10px;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .form-inline button {

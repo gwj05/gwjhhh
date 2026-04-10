@@ -5,15 +5,18 @@ const authenticateToken = require('../middleware/auth');
 const {
   ensureSmartWarningSchema,
   insertPushes,
-  runInventoryRules
+  runInventoryRules,
+  getMlModelInfo,
+  trainMlPredictor
 } = require('../lib/smartWarning');
+const { getScopedFarmId, isNoFarmForNonAdmin, assertFarmAccess } = require('../lib/dataScope');
 
 // 获取预警消息列表（支持分页和筛选）
 router.get('/list', authenticateToken, async (req, res) => {
   try {
+    await ensureSmartWarningSchema(pool);
     const { page = 1, pageSize = 10, farm_id, handle_status } = req.query;
-    const roleId = req.user.role_id;
-    const userFarmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, farm_id);
     const userId = req.user.user_id;
 
     const offset = (page - 1) * pageSize;
@@ -26,6 +29,8 @@ router.get('/list', authenticateToken, async (req, res) => {
         ce.exception_type,
         ce.exception_time,
         ce.exception_detail,
+        ce.suggest_content,
+        ce.predicted_prob,
         ce.warning_level,
         ce.scroll_sort,
         ce.handle_status,
@@ -48,16 +53,12 @@ router.get('/list', authenticateToken, async (req, res) => {
     const params = [userId];
 
     // 数据权限：非超级管理员仅能查询所属farm_id的数据
-    if (roleId !== 1) {
-      if (!userFarmId) {
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
         return res.json({ data: [], total: 0, page: parseInt(page), pageSize: parseInt(pageSize) });
-      }
+    }
+    if (scopedFarmId) {
       query += ' AND f.farm_id = ?';
-      params.push(userFarmId);
-    } else if (farm_id) {
-      // 超级管理员可以按farm_id筛选
-      query += ' AND f.farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
 
     // 处理状态筛选
@@ -81,16 +82,12 @@ router.get('/list', authenticateToken, async (req, res) => {
     `;
     const countParams = [];
 
-    if (roleId !== 1) {
-      if (userFarmId) {
-        countQuery += ' AND f.farm_id = ?';
-        countParams.push(userFarmId);
-      } else {
-        return res.json({ data: [], total: 0, page: parseInt(page), pageSize: parseInt(pageSize) });
-      }
-    } else if (farm_id) {
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json({ data: [], total: 0, page: parseInt(page), pageSize: parseInt(pageSize) });
+    }
+    if (scopedFarmId) {
       countQuery += ' AND f.farm_id = ?';
-      countParams.push(farm_id);
+      countParams.push(scopedFarmId);
     }
 
     if (handle_status) {
@@ -205,20 +202,81 @@ router.get('/unread-count', authenticateToken, async (req, res) => {
   }
 });
 
-function assertFarm(user, farmId) {
-  if (user.role_id === 1) return;
-  if (!user.farm_id || String(user.farm_id) !== String(farmId)) {
-    const e = new Error('无权操作该农场');
-    e.status = 403;
-    throw e;
+// 机器学习预测：模型状态（仅管理员查看）
+router.get('/ml/status', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role_id !== 1) return res.status(403).json({ message: '无权限' })
+    await ensureSmartWarningSchema(pool)
+    res.json({ model: getMlModelInfo() })
+  } catch (e) {
+    res.status(500).json({ message: '服务器错误', error: e.message })
   }
-}
+})
+
+// 机器学习预测：手动触发训练（仅管理员）
+router.post('/ml/train', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role_id !== 1) return res.status(403).json({ message: '无权限' })
+    const r = await trainMlPredictor(pool)
+    res.json(r)
+  } catch (e) {
+    res.status(500).json({ message: '服务器错误', error: e.message })
+  }
+})
+
+// 机器学习预测：一键执行「训练 + 规则扫描」，返回新生成预测预警数量（仅管理员）
+router.post('/ml/run-all', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role_id !== 1) return res.status(403).json({ message: '无权限' })
+
+    await ensureSmartWarningSchema(pool)
+    const [[beforeRow]] = await pool.execute(
+      `SELECT COUNT(*) AS c FROM crop_exception WHERE COALESCE(source_type,'manual') = 'ml'`
+    )
+    const before = Number(beforeRow?.c || 0)
+
+    const trainResult = await trainMlPredictor(pool)
+    await runInventoryRules(pool)
+
+    const [[afterRow]] = await pool.execute(
+      `SELECT COUNT(*) AS c FROM crop_exception WHERE COALESCE(source_type,'manual') = 'ml'`
+    )
+    const after = Number(afterRow?.c || 0)
+    const generated = Math.max(0, after - before)
+
+    const [latest] = await pool.execute(
+      `SELECT ce.exception_id, ce.exception_type, ce.predicted_prob, ce.handle_status, ce.exception_time,
+              c.farm_id, f.farm_name, c.plant_area
+       FROM crop_exception ce
+       INNER JOIN crop c ON c.crop_id = ce.crop_id
+       INNER JOIN farm f ON f.farm_id = c.farm_id
+       WHERE COALESCE(ce.source_type,'manual') = 'ml'
+       ORDER BY ce.exception_id DESC
+       LIMIT 10`
+    )
+
+    res.json({
+      message: '训练与规则扫描已执行',
+      train: trainResult,
+      ml_before: before,
+      ml_after: after,
+      new_generated_ml_warnings: generated,
+      latest_ml_warnings: latest || []
+    })
+  } catch (e) {
+    console.error('warning/ml/run-all:', e)
+    res.status(500).json({ message: '服务器错误', error: e.message })
+  }
+})
+
+const assertFarm = assertFarmAccess;
 
 // ---------- 监控设备（聚合列表，便于预警模块专用页）----------
 router.get('/devices', authenticateToken, async (req, res) => {
   try {
     const user = req.user;
     const { farm_id } = req.query;
+    const scopedFarmId = getScopedFarmId(user, farm_id);
     let sql = `
       SELECT md.device_id, md.farm_id, f.farm_name, md.device_name, md.install_location,
              md.device_status, md.monitor_area, md.device_category, md.last_online_time
@@ -227,13 +285,10 @@ router.get('/devices', authenticateToken, async (req, res) => {
       WHERE 1=1
     `;
     const params = [];
-    if (user.role_id !== 1) {
-      if (!user.farm_id) return res.json([]);
+    if (isNoFarmForNonAdmin(user, scopedFarmId)) return res.json([]);
+    if (scopedFarmId) {
       sql += ' AND md.farm_id = ?';
-      params.push(user.farm_id);
-    } else if (farm_id) {
-      sql += ' AND md.farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
     sql += ' ORDER BY f.farm_name, md.device_id DESC';
     const [rows] = await pool.execute(sql, params);
@@ -316,18 +371,16 @@ router.get('/exceptions', authenticateToken, async (req, res) => {
     await ensureSmartWarningSchema(pool);
     const user = req.user;
     const { page = 1, pageSize = 10, farm_id, handle_status, exception_type, source_type } = req.query;
+    const scopedFarmId = getScopedFarmId(user, farm_id);
     const offset = (Number(page) - 1) * Number(pageSize);
     const lim = Math.min(100, Math.max(1, Number(pageSize) || 10));
 
     let where = 'WHERE 1=1';
     const params = [];
-    if (user.role_id !== 1) {
-      if (!user.farm_id) return res.json({ data: [], total: 0, page: Number(page), pageSize: lim });
+    if (isNoFarmForNonAdmin(user, scopedFarmId)) return res.json({ data: [], total: 0, page: Number(page), pageSize: lim });
+    if (scopedFarmId) {
       where += ' AND c.farm_id = ?';
-      params.push(user.farm_id);
-    } else if (farm_id) {
-      where += ' AND c.farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
     if (handle_status) {
       where += ' AND ce.handle_status = ?';
@@ -491,20 +544,21 @@ router.get('/stats', authenticateToken, async (req, res) => {
   try {
     await ensureSmartWarningSchema(pool);
     const user = req.user;
+    const scopedFarmId = getScopedFarmId(user, req.query.farm_id);
     const { from, to } = req.query;
     let farmClause = '';
     const params = [];
-    if (user.role_id !== 1) {
-      if (!user.farm_id) {
-        return res.json({
-          total: 0,
-          by_status: [],
-          by_type: [],
-          by_farm: []
-        });
-      }
+    if (isNoFarmForNonAdmin(user, scopedFarmId)) {
+      return res.json({
+        total: 0,
+        by_status: [],
+        by_type: [],
+        by_farm: []
+      });
+    }
+    if (scopedFarmId) {
       farmClause = ' AND c.farm_id = ?';
-      params.push(user.farm_id);
+      params.push(scopedFarmId);
     }
     let timeClause = '';
     if (from) {

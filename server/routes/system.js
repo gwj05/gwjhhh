@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 const authenticateToken = require('../middleware/auth');
+const { writeAuditLog, clientIp, ensureAuditLogTable } = require('../lib/auditLog');
 
 function parsePage(req) {
   const page = Math.max(1, Number(req.query.page) || 1);
@@ -98,8 +99,7 @@ router.get('/users', authenticateToken, async (req, res) => {
       countParams.push(role_id);
     }
 
-    query += ' ORDER BY u.user_id DESC LIMIT ? OFFSET ?';
-    params.push(pageSize, offset);
+    query += ` ORDER BY u.user_id DESC LIMIT ${Number(pageSize)} OFFSET ${Number(offset)}`;
 
     const [users] = await pool.execute(query, params);
     const [countResult] = await pool.execute(countQuery, countParams);
@@ -157,6 +157,19 @@ router.post('/users', authenticateToken, async (req, res) => {
       'INSERT INTO user (role_id, username, password, real_name, phone, farm_id) VALUES (?, ?, ?, ?, ?, ?)',
       [Number(role_id), username, hashedPassword, real_name, phone, targetFarmId]
     );
+
+    await writeAuditLog(pool, {
+      action: 'system.user_create',
+      user_id: actor.user_id,
+      username: actor.username,
+      detail: {
+        target_user_id: result.insertId,
+        target_username: username,
+        role_id: Number(role_id),
+        farm_id: targetFarmId
+      },
+      ip: clientIp(req)
+    });
 
     res.status(201).json({
       message: '创建成功',
@@ -227,6 +240,18 @@ router.put('/users/:id', authenticateToken, async (req, res) => {
 
     if (result.affectedRows === 0) return res.status(404).json({ message: '用户不存在' });
 
+    await writeAuditLog(pool, {
+      action: 'system.user_update',
+      user_id: actor.user_id,
+      username: actor.username,
+      detail: {
+        target_user_id: Number(id),
+        target_username: targetUser.username,
+        fields: Object.keys(req.body || {})
+      },
+      ip: clientIp(req)
+    });
+
     res.json({ message: '更新成功' });
   } catch (error) {
     console.error('更新用户错误:', error);
@@ -258,6 +283,17 @@ router.delete('/users/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: '用户不存在' });
     }
 
+    await writeAuditLog(pool, {
+      action: 'system.user_delete',
+      user_id: actor.user_id,
+      username: actor.username,
+      detail: {
+        target_user_id: Number(id),
+        target_username: targetUser.username
+      },
+      ip: clientIp(req)
+    });
+
     res.json({ message: '删除成功' });
   } catch (error) {
     console.error('删除用户错误:', error);
@@ -282,6 +318,31 @@ router.get('/roles', authenticateToken, async (req, res) => {
     res.json(roles);
   } catch (error) {
     console.error('获取角色列表错误:', error);
+    res.status(500).json({ message: '服务器错误', error: error.message });
+  }
+});
+
+// 审计日志（仅超级管理员，答辩展示）
+router.get('/audit-logs', authenticateToken, async (req, res) => {
+  try {
+    if (req.user.role_id !== 1) return res.status(403).json({ message: '无权访问' });
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize) || 30));
+    const offset = (page - 1) * pageSize;
+    await ensureAuditLogTable(pool);
+    const [rows] = await pool.execute(
+      `SELECT id, created_at, action, user_id, username, detail, ip
+       FROM audit_log ORDER BY id DESC LIMIT ${Number(pageSize)} OFFSET ${Number(offset)}`
+    );
+    const [[{ total }]] = await pool.execute('SELECT COUNT(*) AS total FROM audit_log');
+    res.json({
+      data: rows,
+      total: Number(total) || 0,
+      page,
+      pageSize
+    });
+  } catch (error) {
+    console.error('audit-logs:', error);
     res.status(500).json({ message: '服务器错误', error: error.message });
   }
 });

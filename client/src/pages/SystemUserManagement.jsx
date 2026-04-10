@@ -1,6 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
+import { useToast } from '../ui/Toast/ToastProvider'
+import { getErrorMessage } from '../utils/errorMessage'
+import Button from '../ui/Button/Button'
 import './SystemPages.css'
 
 const emptyForm = {
@@ -16,6 +19,8 @@ export default function SystemUserManagement() {
   const { user } = useAuth()
   const isAdmin = user?.role_id === 1
   const isFarmManager = user?.role_id === 2
+  const toast = useToast()
+
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
@@ -26,12 +31,6 @@ export default function SystemUserManagement() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editing, setEditing] = useState(null)
   const [form, setForm] = useState(emptyForm)
-  const [toast, setToast] = useState('')
-
-  const showToast = (msg) => {
-    setToast(msg)
-    setTimeout(() => setToast(''), 2200)
-  }
 
   const loadMeta = useCallback(async () => {
     try {
@@ -42,9 +41,9 @@ export default function SystemUserManagement() {
       setRoles(r.data || [])
       setFarms(f.data?.data || [])
     } catch (e) {
-      showToast(e.response?.data?.message || '加载角色/农场失败')
+      toast.error(getErrorMessage(e, '加载角色/农场失败'))
     }
-  }, [isAdmin])
+  }, [isAdmin, toast])
 
   const loadUsers = useCallback(async () => {
     try {
@@ -60,18 +59,26 @@ export default function SystemUserManagement() {
       setRows(res.data?.data || [])
       setTotal(res.data?.total || 0)
     } catch (e) {
-      showToast(e.response?.data?.message || '加载用户失败')
+      toast.error(getErrorMessage(e, '加载用户失败'))
     }
-  }, [page, pageSize, filter.username, filter.real_name, filter.role_id])
+  }, [page, pageSize, filter.username, filter.real_name, filter.role_id, toast])
 
   useEffect(() => { loadMeta() }, [loadMeta])
   useEffect(() => { loadUsers() }, [loadUsers])
 
   const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize])
 
+  const canOperateRow = (r) => {
+    if (!user) return false
+    if (Number(r.user_id) === Number(user.user_id)) return false
+    if (isAdmin) return true
+    // 农场管理员：仅操作本农场普通用户
+    return Number(r.role_id) === 3 && String(r.farm_id) === String(user.farm_id)
+  }
+
   const openCreate = () => {
     setEditing(null)
-    setForm({ ...emptyForm, role_id: isFarmManager ? 3 : 3, farm_id: isAdmin ? '' : String(user?.farm_id || '') })
+    setForm({ ...emptyForm, role_id: 3, farm_id: isAdmin ? '' : String(user?.farm_id || '') })
     setModalOpen(true)
   }
 
@@ -90,8 +97,8 @@ export default function SystemUserManagement() {
 
   const submit = async () => {
     try {
-      if (!form.username || !form.real_name || !form.phone) return showToast('请填写完整信息')
-      if (!editing && !form.password) return showToast('新建用户必须填写密码')
+      if (!form.username || !form.real_name || !form.phone) return toast.warn('请填写完整信息')
+      if (!editing && !form.password) return toast.warn('新建用户必须填写密码')
       const payload = {
         username: form.username.trim(),
         real_name: form.real_name.trim(),
@@ -102,15 +109,15 @@ export default function SystemUserManagement() {
       if (form.password) payload.password = form.password
       if (editing) {
         await api.put(`/system/users/${editing.user_id}`, payload)
-        showToast('更新成功')
+        toast.success('更新成功')
       } else {
         await api.post('/system/users', payload)
-        showToast('创建成功')
+        toast.success('创建成功')
       }
       setModalOpen(false)
       loadUsers()
     } catch (e) {
-      showToast(e.response?.data?.message || '提交失败')
+      toast.error(getErrorMessage(e, '提交失败'))
     }
   }
 
@@ -118,10 +125,10 @@ export default function SystemUserManagement() {
     if (!window.confirm(`确认删除用户 ${r.username} ?`)) return
     try {
       await api.delete(`/system/users/${r.user_id}`)
-      showToast('删除成功')
+      toast.success('删除成功')
       loadUsers()
     } catch (e) {
-      showToast(e.response?.data?.message || '删除失败')
+      toast.error(getErrorMessage(e, '删除失败'))
     }
   }
 
@@ -129,7 +136,7 @@ export default function SystemUserManagement() {
     <div className="system-page">
       <div className="system-header">
         <h2>用户管理</h2>
-        <button className="sys-btn primary" onClick={openCreate}>新增用户</button>
+        <Button variant="primary" onClick={openCreate}>新增用户</Button>
       </div>
       <p className="system-sub">
         {isAdmin ? '管理员可管理全部用户。' : '农场管理员仅可管理本农场普通用户。'}
@@ -152,7 +159,7 @@ export default function SystemUserManagement() {
               {roles.map((r) => <option key={r.role_id} value={r.role_id}>{r.role_name}</option>)}
             </select>
           </div>
-          <button className="sys-btn" onClick={() => { setPage(1); loadUsers() }}>查询</button>
+          <Button size="sm" onClick={() => { setPage(1); loadUsers() }}>查询</Button>
         </div>
 
         <table className="system-table">
@@ -162,30 +169,33 @@ export default function SystemUserManagement() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((r) => (
-              <tr key={r.user_id}>
-                <td>{r.user_id}</td>
-                <td>{r.username}</td>
-                <td>{r.real_name}</td>
-                <td>{r.phone}</td>
-                <td>{r.role_name}</td>
-                <td>{r.farm_name || '-'}</td>
-                <td>
-                  <div className="system-actions">
-                    <button className="sys-btn" onClick={() => openEdit(r)}>编辑</button>
-                    <button className="sys-btn danger" onClick={() => remove(r)}>删除</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {rows.map((r) => {
+              const canOp = canOperateRow(r)
+              return (
+                <tr key={r.user_id}>
+                  <td>{r.user_id}</td>
+                  <td>{r.username}</td>
+                  <td>{r.real_name}</td>
+                  <td>{r.phone}</td>
+                  <td>{r.role_name}</td>
+                  <td>{r.farm_name || '-'}</td>
+                  <td>
+                    <div className="system-actions">
+                      <Button size="sm" onClick={() => openEdit(r)} disabled={!canOp}>编辑</Button>
+                      <Button size="sm" variant="danger" onClick={() => remove(r)} disabled={!canOp}>删除</Button>
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
 
         <div className="sys-pagebar">
           <span>共 {total} 条</span>
-          <button className="sys-btn" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>上一页</button>
+          <Button size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>上一页</Button>
           <span>{page}/{pageCount}</span>
-          <button className="sys-btn" disabled={page >= pageCount} onClick={() => setPage((p) => p + 1)}>下一页</button>
+          <Button size="sm" disabled={page >= pageCount} onClick={() => setPage((p) => p + 1)}>下一页</Button>
         </div>
       </div>
 
@@ -213,13 +223,13 @@ export default function SystemUserManagement() {
               </div>
             </div>
             <div className="system-actions" style={{ marginTop: 12, justifyContent: 'flex-end' }}>
-              <button className="sys-btn" onClick={() => setModalOpen(false)}>取消</button>
-              <button className="sys-btn primary" onClick={submit}>保存</button>
+              <Button onClick={() => setModalOpen(false)}>取消</Button>
+              <Button variant="primary" onClick={submit}>保存</Button>
             </div>
           </div>
         </div>
       )}
-      {toast ? <div className="sys-toast">{toast}</div> : null}
     </div>
   )
 }
+

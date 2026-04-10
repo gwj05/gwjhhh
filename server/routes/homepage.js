@@ -3,6 +3,7 @@ const router = express.Router();
 const pool = require('../config/database');
 const authenticateToken = require('../middleware/auth');
 const materialRouter = require('./material');
+const { getScopedFarmId, isNoFarmForNonAdmin } = require('../lib/dataScope');
 
 /** 与农资模块一致的库存状态 SQL 片段 */
 function computedMaterialStockCase() {
@@ -20,26 +21,17 @@ function computedMaterialStockCase() {
 router.get('/stock-warnings', authenticateToken, async (req, res) => {
   try {
     await materialRouter.ensureMaterialTables();
-    const roleId = req.user.role_id;
-    const userFarmId = req.user.farm_id;
     const { farm_id } = req.query;
+    const scopedFarmId = getScopedFarmId(req.user, farm_id);
 
     const params = [];
     let whereSql = 'WHERE 1=1';
-    if (roleId !== 1) {
-      if (!userFarmId) {
-        return res.json({
-          total: 0,
-          low_count: 0,
-          out_count: 0,
-          items: []
-        });
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json({ total: 0, low_count: 0, out_count: 0, items: [] });
+    }
+    if (scopedFarmId) {
       whereSql += ' AND m.farm_id = ?';
-      params.push(userFarmId);
-    } else if (farm_id) {
-      whereSql += ' AND m.farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
 
     const stateExpr = computedMaterialStockCase();
@@ -68,11 +60,14 @@ router.get('/stock-warnings', authenticateToken, async (req, res) => {
         m.material_name,
         m.stock_num,
         m.safety_stock_num,
+        COALESCE(mwh.handle_status, '未处理') AS handle_status,
         m.updated_at,
         m.created_at,
         ${stateExpr} AS stock_state
       FROM agricultural_material m
       INNER JOIN farm f ON m.farm_id = f.farm_id
+      LEFT JOIN material_warning_handle mwh
+        ON mwh.farm_id = m.farm_id AND mwh.material_id = m.material_id
       ${whereSql}
       ORDER BY (CASE WHEN (${stateExpr}) = '缺货' THEN 0 ELSE 1 END), m.stock_num ASC, m.material_id DESC
       LIMIT 50
@@ -84,6 +79,10 @@ router.get('/stock-warnings', authenticateToken, async (req, res) => {
       const st = row.stock_state;
       const sn = Number(row.stock_num ?? 0);
       const level = st === '缺货' ? 'critical' : 'warning';
+      const suggest =
+        st === '缺货'
+          ? '建议立即采购补充并安排紧急入库'
+          : '建议采购补充库存，避免影响生产'
       let line = `【库存】${row.material_name}`;
       if (st === '缺货') line += '缺货';
       else line += `库存不足（当前 ${sn}）`;
@@ -100,7 +99,9 @@ router.get('/stock-warnings', authenticateToken, async (req, res) => {
         stock_num: sn,
         safety_stock_num: Number(row.safety_stock_num ?? 0),
         stock_state: st,
+        handle_status: row.handle_status || '未处理',
         level,
+        suggest_content: suggest,
         line,
         sort_time: sortTime
       };
@@ -122,8 +123,7 @@ router.get('/stock-warnings', authenticateToken, async (req, res) => {
 router.get('/weather', authenticateToken, async (req, res) => {
   try {
     const { farm_id } = req.query;
-    const roleId = req.user.role_id;
-    const userFarmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, farm_id);
 
     let query = `
       SELECT 
@@ -142,16 +142,12 @@ router.get('/weather', authenticateToken, async (req, res) => {
     `;
     const params = [];
 
-    // 数据权限
-    if (roleId !== 1) {
-      if (!userFarmId) {
-        return res.json(null);
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json(null);
+    }
+    if (scopedFarmId) {
       query += ' AND em.farm_id = ?';
-      params.push(userFarmId);
-    } else if (farm_id) {
-      query += ' AND em.farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
 
     query += ' ORDER BY em.monitor_time DESC LIMIT 1';
@@ -168,8 +164,7 @@ router.get('/weather', authenticateToken, async (req, res) => {
 router.get('/weather-history', authenticateToken, async (req, res) => {
   try {
     const { farm_id, range = '24h' } = req.query;
-    const roleId = req.user.role_id;
-    const userFarmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, farm_id);
 
     let timeCondition = '';
     if (range === '7d') {
@@ -196,16 +191,12 @@ router.get('/weather-history', authenticateToken, async (req, res) => {
     `;
     const params = [];
 
-    // 数据权限
-    if (roleId !== 1) {
-      if (!userFarmId) {
-        return res.json([]);
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json([]);
+    }
+    if (scopedFarmId) {
       query += ' AND em.farm_id = ?';
-      params.push(userFarmId);
-    } else if (farm_id) {
-      query += ' AND em.farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
 
     query += ' ORDER BY em.monitor_time ASC';
@@ -218,16 +209,12 @@ router.get('/weather-history', authenticateToken, async (req, res) => {
         SELECT temperature, humidity, soil_ph, monitor_time
         FROM environment_monitor
         WHERE 1=1
-        ${roleId !== 1 ? 'AND farm_id = ?' : (farm_id ? 'AND farm_id = ?' : '')}
+        ${scopedFarmId ? 'AND farm_id = ?' : ''}
         ORDER BY monitor_time DESC
         LIMIT 48
       `
       const fallbackParams = []
-      if (roleId !== 1) {
-        fallbackParams.push(userFarmId)
-      } else if (farm_id) {
-        fallbackParams.push(farm_id)
-      }
+      if (scopedFarmId) fallbackParams.push(scopedFarmId)
 
       const [fallbackRows] = await pool.execute(fallbackQuery, fallbackParams)
       const ascRows = (fallbackRows || []).sort((a, b) => new Date(a.monitor_time) - new Date(b.monitor_time))
@@ -245,8 +232,7 @@ router.get('/weather-history', authenticateToken, async (req, res) => {
 router.get('/device-stats', authenticateToken, async (req, res) => {
   try {
     const { farm_id } = req.query;
-    const roleId = req.user.role_id;
-    const userFarmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, farm_id);
 
     let query = `
       SELECT 
@@ -261,16 +247,12 @@ router.get('/device-stats', authenticateToken, async (req, res) => {
     `;
     const params = [];
 
-    // 数据权限
-    if (roleId !== 1) {
-      if (!userFarmId) {
-        return res.json([]);
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json([]);
+    }
+    if (scopedFarmId) {
       query += ' AND farm_id = ?';
-      params.push(userFarmId);
-    } else if (farm_id) {
-      query += ' AND farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
 
     query += ' GROUP BY device_category, device_status ORDER BY device_category';
@@ -306,8 +288,7 @@ router.get('/device-stats', authenticateToken, async (req, res) => {
 router.get('/videos', authenticateToken, async (req, res) => {
   try {
     const { farm_id } = req.query;
-    const roleId = req.user.role_id;
-    const userFarmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, farm_id);
 
     let query = `
       SELECT 
@@ -324,16 +305,12 @@ router.get('/videos', authenticateToken, async (req, res) => {
     `;
     const params = [];
 
-    // 数据权限
-    if (roleId !== 1) {
-      if (!userFarmId) {
-        return res.json([]);
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) {
+      return res.json([]);
+    }
+    if (scopedFarmId) {
       query += ' AND vd.farm_id = ?';
-      params.push(userFarmId);
-    } else if (farm_id) {
-      query += ' AND vd.farm_id = ?';
-      params.push(farm_id);
+      params.push(scopedFarmId);
     }
 
     query += ' ORDER BY vd.id DESC';
@@ -349,8 +326,7 @@ router.get('/videos', authenticateToken, async (req, res) => {
 // 获取地图概览数据（农场位置和设备分布）
 router.get('/map-overview', authenticateToken, async (req, res) => {
   try {
-    const roleId = req.user.role_id;
-    const userFarmId = req.user.farm_id;
+    const scopedFarmId = getScopedFarmId(req.user, req.query.farm_id);
 
     let farmQuery = `
       SELECT 
@@ -368,13 +344,10 @@ router.get('/map-overview', authenticateToken, async (req, res) => {
     `;
     const farmParams = [];
 
-    // 数据权限
-    if (roleId !== 1) {
-      if (!userFarmId) {
-        return res.json({ farms: [], devices: [] });
-      }
+    if (isNoFarmForNonAdmin(req.user, scopedFarmId)) return res.json({ farms: [], devices: [] });
+    if (scopedFarmId) {
       farmQuery += ' AND f.farm_id = ?';
-      farmParams.push(userFarmId);
+      farmParams.push(scopedFarmId);
     }
 
     farmQuery += ' GROUP BY f.farm_id HAVING f.longitude IS NOT NULL AND f.latitude IS NOT NULL';
@@ -399,9 +372,9 @@ router.get('/map-overview', authenticateToken, async (req, res) => {
     `;
     const deviceParams = [];
 
-    if (roleId !== 1 && userFarmId) {
+    if (scopedFarmId) {
       deviceQuery += ' AND f.farm_id = ?';
-      deviceParams.push(userFarmId);
+      deviceParams.push(scopedFarmId);
     }
 
     const [devices] = await pool.execute(deviceQuery, deviceParams);

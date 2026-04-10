@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
-import * as echarts from 'echarts'
 import './CropCycle.css'
 
 const METRICS = [
@@ -72,7 +71,7 @@ const CropCycleDetail = () => {
     loadDetail()
   }, [loadDetail])
 
-  // ECharts 渲染/更新
+  // ECharts 按需加载后渲染/更新
   useEffect(() => {
     if (!detail?.env?.history?.length) return
     if (!chartWrapRef.current) return
@@ -83,36 +82,46 @@ const CropCycleDetail = () => {
     })
     const yData = detail.env.history.map(d => d[metric]).map(v => (v == null ? null : Number(v)))
 
-    if (!chartInsRef.current) {
-      chartInsRef.current = echarts.init(chartWrapRef.current)
+    let cancelled = false
+    ;(async () => {
+      const mod = await import('echarts')
+      if (cancelled) return
+      const echarts = mod.default || mod
+      if (!chartWrapRef.current) return
+      if (!chartInsRef.current) {
+        chartInsRef.current = echarts.init(chartWrapRef.current)
+      }
+      const option = {
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'category',
+          data: xData,
+          boundaryGap: false,
+          axisLabel: { interval: Math.max(0, Math.floor(xData.length / 10)) }
+        },
+        yAxis: {
+          type: 'value',
+          name: METRICS.find(m => m.key === metric)?.label || ''
+        },
+        series: [
+          {
+            name: '趋势',
+            type: 'line',
+            data: yData,
+            smooth: true,
+            showSymbol: false,
+            lineStyle: { width: 2 },
+            areaStyle: { opacity: 0.08 }
+          }
+        ]
+      }
+      chartInsRef.current.setOption(option)
+    })()
+    return () => {
+      cancelled = true
     }
-    const option = {
-      tooltip: {
-        trigger: 'axis'
-      },
-      xAxis: {
-        type: 'category',
-        data: xData,
-        boundaryGap: false,
-        axisLabel: { interval: Math.max(0, Math.floor(xData.length / 10)) }
-      },
-      yAxis: {
-        type: 'value',
-        name: METRICS.find(m => m.key === metric)?.label || ''
-      },
-      series: [
-        {
-          name: '趋势',
-          type: 'line',
-          data: yData,
-          smooth: true,
-          showSymbol: false,
-          lineStyle: { width: 2 },
-          areaStyle: { opacity: 0.08 }
-        }
-      ]
-    }
-    chartInsRef.current.setOption(option)
   }, [detail, metric])
 
   useEffect(() => {

@@ -45,10 +45,10 @@ const authenticateToken = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
-      return res.status(403).json({ message: 'token无效' });
+      return res.status(401).json({ message: 'token无效' });
     }
     if (error.name === 'TokenExpiredError') {
-      return res.status(403).json({ message: 'token已过期' });
+      return res.status(401).json({ message: 'token已过期' });
     }
     console.error('权限验证错误:', error);
     return res.status(500).json({ message: '服务器错误' });

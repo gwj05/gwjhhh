@@ -6,7 +6,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "db:full-data": "node db-ensure-full-data.js"
+    "db:full-data": "node db-ensure-full-data.js",
+    "seed:rbac": "node seed-rbac-accounts.js",
+    "check:permissions": "node permission-regression-check.js",
+    "migrate:demo-videos": "node scripts/apply-demo-video-urls.js"
   },
   "dependencies": {
     "express": "^4.18.2",

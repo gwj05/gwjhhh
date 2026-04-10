@@ -1,48 +1,23 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../utils/api'
 import { GLOBAL_FARM_CHANGED_EVENT } from '../utils/globalFarm'
+import { getBreadcrumbs } from '../routes/routeConfig'
 import './TopBar.css'
 const TopBar = () => {
-  const { user, logout, currentFarmId, currentFarmName } = useAuth()
+  const { user, logout, currentFarmId, currentFarmName, switchGlobalFarm } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [breadcrumbs, setBreadcrumbs] = useState([])
   const [farmToast, setFarmToast] = useState('')
+  const [showFarmMenu, setShowFarmMenu] = useState(false)
+  const [farmOptions, setFarmOptions] = useState([])
+  const [farmLoading, setFarmLoading] = useState(false)
   // 根据路径生成面包屑
   useEffect(() => {
-    const pathMap = {
-      '/home': ['首页'],
-      '/homepage': ['系统首页'],
-      '/overview': ['系统概览'],
-      '/farm/list': ['农场管理', '农场列表'],
-      '/farm/detail': ['农场管理', '农场详情'],
-      '/farm/manager': ['农场管理', '负责人管理'],
-      '/crop/list': ['作物管理', '作物列表'],
-      '/crop/area': ['作物管理', '种植区域管理'],
-      '/crop/cycle': ['作物管理', '生长周期记录'],
-      '/material/list': ['农资管理', '农资列表'],
-      '/material/warning': ['农资管理', '库存预警'],
-      '/material/purchase': ['农资管理', '采购记录'],
-      '/operation/query': ['农事操作', '操作记录查询'],
-      '/operation/fertilize': ['农事操作', '施肥记录'],
-      '/operation/irrigate': ['农事操作', '灌溉记录'],
-      '/monitor/realtime': ['环境监测', '实时数据'],
-      '/monitor/history': ['环境监测', '历史数据'],
-      '/monitor/report': ['环境监测', '数据报表'],
-      '/warning/device': ['智能预警', '监控设备管理'],
-      '/warning/exception': ['智能预警', '作物异常记录'],
-      '/warning/push': ['智能预警', '异常推送记录'],
-      '/warning/status': ['智能预警', '处理状态统计'],
-      '/system/user': ['系统管理', '用户管理'],
-      '/system/role': ['系统管理', '角色管理'],
-      '/system/permission': ['系统管理', '权限配置']
-    }
-
-    const crumbs = pathMap[location.pathname] || ['首页']
-    setBreadcrumbs(crumbs)
+    setBreadcrumbs(getBreadcrumbs(location.pathname))
   }, [location.pathname])
 
   const handleLogout = async () => {
@@ -75,10 +50,13 @@ const TopBar = () => {
       if (showUserMenu && !e.target.closest('.user-menu-container')) {
         setShowUserMenu(false)
       }
+      if (showFarmMenu && !e.target.closest('.farm-menu-container')) {
+        setShowFarmMenu(false)
+      }
     }
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
-  }, [showUserMenu])
+  }, [showUserMenu, showFarmMenu])
 
   useEffect(() => {
     let timer = null
@@ -97,6 +75,32 @@ const TopBar = () => {
 
   if (!user) return null
 
+  const farmDisplayName = useMemo(() => {
+    if (user.role_id === 1) return currentFarmName || (currentFarmId ? `农场#${currentFarmId}` : '全部农场')
+    return currentFarmName || (user.farm_id ? `农场#${user.farm_id}` : '我的农场')
+  }, [user.role_id, user.farm_id, currentFarmId, currentFarmName])
+
+  const openFarmMenu = async () => {
+    if (user.role_id !== 1) return
+    setShowFarmMenu((v) => !v)
+    if (showFarmMenu) return
+    if (farmOptions.length > 0) return
+    try {
+      setFarmLoading(true)
+      const res = await api.get('/farm/list', { params: { page: 1, pageSize: 50, sortField: 'farm_name', sortOrder: 'asc' } })
+      setFarmOptions(res.data?.data || [])
+    } catch (e) {
+      console.error('获取农场列表失败:', e)
+    } finally {
+      setFarmLoading(false)
+    }
+  }
+
+  const onPickFarm = (farmId, farmName) => {
+    switchGlobalFarm(farmId, farmName || '')
+    setShowFarmMenu(false)
+  }
+
   return (
     <div className="topbar">
       <div className="topbar-left">
@@ -114,13 +118,44 @@ const TopBar = () => {
             </span>
           ))}
         </div>
-        <div className="global-farm-indicator">
-          当前农场：
-          <strong>
-            {user.role_id === 1
-              ? (currentFarmName || (currentFarmId ? `农场#${currentFarmId}` : '全部农场'))
-              : (currentFarmName || (user.farm_id ? `农场#${user.farm_id}` : '我的农场'))}
-          </strong>
+        <div className={`farm-menu-container ${user.role_id === 1 ? 'is-admin' : ''}`}>
+          <button
+            type="button"
+            className={`global-farm-indicator ${user.role_id === 1 ? 'is-clickable' : ''}`}
+            onClick={openFarmMenu}
+            title={user.role_id === 1 ? '点击切换全局农场' : '当前农场'}
+          >
+            <span className="farm-pin" aria-hidden="true">📍</span>
+            <span className="farm-label">当前农场</span>
+            <strong className="farm-name">{farmDisplayName}</strong>
+            {user.role_id === 1 ? <span className={`farm-arrow ${showFarmMenu ? 'expanded' : ''}`}>▼</span> : null}
+          </button>
+          {user.role_id === 1 && showFarmMenu ? (
+            <div className="farm-dropdown">
+              <button type="button" className="farm-dd-item" onClick={() => onPickFarm('', '')}>
+                <span className="farm-dd-name">全部农场</span>
+                <span className="farm-dd-meta">查看所有农场数据</span>
+              </button>
+              <div className="farm-dd-divider" />
+              {farmLoading ? (
+                <div className="farm-dd-loading">加载中...</div>
+              ) : farmOptions.length === 0 ? (
+                <div className="farm-dd-empty">暂无可选农场</div>
+              ) : (
+                farmOptions.map((f) => (
+                  <button
+                    key={f.farm_id}
+                    type="button"
+                    className={`farm-dd-item ${String(currentFarmId) === String(f.farm_id) ? 'active' : ''}`}
+                    onClick={() => onPickFarm(f.farm_id, f.farm_name)}
+                  >
+                    <span className="farm-dd-name">{f.farm_name}</span>
+                    <span className="farm-dd-meta">{f.address || `农场#${f.farm_id}`}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : null}
         </div>
       </div>
       <div className="topbar-right">

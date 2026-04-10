@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react'
 import api from '../utils/api'
 import { useAuth } from '../context/AuthContext'
 import { notifyWarningChanged } from '../utils/warningEvents'
+import { useToast } from '../ui/Toast/ToastProvider'
+import { getErrorMessage } from '../utils/errorMessage'
+import Button from '../ui/Button/Button'
 import './WarningPages.css'
 
 const EXCEPTION_TYPE_PRESETS = [
@@ -17,10 +20,20 @@ const EXCEPTION_TYPE_PRESETS = [
 const SOURCE_LABEL = {
   manual: '手动',
   rule: '规则',
-  environment: '环境'
+  environment: '环境',
+  ml: '机器学习预测'
 }
 
 const LEVEL_LABEL = { 1: '紧急', 2: '普通', 3: '提示' }
+
+const getProbMeta = (prob) => {
+  const p = Number(prob)
+  if (!Number.isFinite(p)) return { label: '—', cls: '' }
+  const pct = Math.round(p * 100)
+  if (pct >= 70) return { label: `${pct}%`, cls: 'risk-high' }
+  if (pct >= 40) return { label: `${pct}%`, cls: 'risk-mid' }
+  return { label: `${pct}%`, cls: 'risk-low' }
+}
 
 const WarningException = () => {
   const { user } = useAuth()
@@ -38,11 +51,7 @@ const WarningException = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [toast, setToast] = useState(null)
-  const showToast = (message, kind = 'success') => {
-    setToast({ message, kind })
-    setTimeout(() => setToast(null), 2600)
-  }
+  const toast = useToast()
 
   const [modalOpen, setModalOpen] = useState(false)
   const [manualFarm, setManualFarm] = useState('')
@@ -81,7 +90,7 @@ const WarningException = () => {
       setRows(res.data?.data || [])
       setTotal(res.data?.total || 0)
     } catch (e) {
-      showToast(e.response?.data?.message || '加载失败', 'error')
+      toast.error(getErrorMessage(e, '加载失败'))
     } finally {
       setLoading(false)
     }
@@ -162,23 +171,23 @@ const WarningException = () => {
         exception_detail: manualForm.exception_detail || null,
         warning_level: Number(manualForm.warning_level)
       })
-      showToast('已记录并推送')
+      toast.success('已记录并推送')
       setModalOpen(false)
       notifyWarningChanged()
       loadList()
     } catch (err) {
-      showToast(err.response?.data?.message || '提交失败', 'error')
+      toast.error(getErrorMessage(err, '提交失败'))
     }
   }
 
   const updateStatus = async (id, handle_status) => {
     try {
       await api.put(`/warning/exceptions/${id}/status`, { handle_status })
-      showToast('状态已更新')
+      toast.success('状态已更新')
       notifyWarningChanged()
       loadList()
     } catch (err) {
-      showToast(err.response?.data?.message || '更新失败', 'error')
+      toast.error(getErrorMessage(err, '更新失败'))
     }
   }
 
@@ -221,9 +230,10 @@ const WarningException = () => {
             <option value="manual">手动</option>
             <option value="rule">规则</option>
             <option value="environment">环境</option>
+            <option value="ml">机器学习预测</option>
           </select>
         </div>
-        <div className="field">
+        <div className="field grow">
           <label>异常类型</label>
           <input
             placeholder="筛选关键字"
@@ -231,10 +241,10 @@ const WarningException = () => {
             onChange={(e) => { setExceptionType(e.target.value); setPage(1) }}
           />
         </div>
-        <button type="button" className="btn-primary" style={{ marginLeft: 'auto' }} onClick={openManual}>
-          手动登记异常
-        </button>
-        <button type="button" className="btn-ghost" onClick={loadList} disabled={loading}>刷新</button>
+        <div className="warning-toolbar-actions">
+          <Button variant="primary" onClick={openManual}>手动登记异常</Button>
+          <Button variant="ghost" onClick={loadList} disabled={loading}>刷新</Button>
+        </div>
       </div>
 
       <div className="warning-table-card">
@@ -261,7 +271,14 @@ const WarningException = () => {
               {rows.map((r) => (
                 <tr key={r.exception_id}>
                   <td>{r.exception_time ? new Date(r.exception_time).toLocaleString() : '—'}</td>
-                  <td>{r.exception_type}</td>
+                  <td>
+                    <div className="type-cell">
+                      <span>{(String(r.source_type || '') === 'ml' || r.exception_type === '预测预警') ? '预测预警' : r.exception_type}</span>
+                      {(String(r.source_type || '') === 'ml' || r.exception_type === '预测预警') ? (
+                        <span className="badge-ml">预测</span>
+                      ) : null}
+                    </div>
+                  </td>
                   <td>{SOURCE_LABEL[r.source_type] || r.source_type || '手动'}</td>
                   <td>{LEVEL_LABEL[r.warning_level] || r.warning_level}</td>
                   <td>
@@ -273,8 +290,29 @@ const WarningException = () => {
                       {r.handle_status}
                     </span>
                   </td>
-                  <td style={{ maxWidth: 220, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {r.exception_detail || '—'}
+                  <td className="detail-cell">
+                    {(() => {
+                      const isMl = String(r.source_type || '') === 'ml' || r.exception_type === '预测预警'
+                      if (!isMl) return <span className="detail-plain">{r.exception_detail || '—'}</span>
+                      const meta = getProbMeta(r.predicted_prob)
+                      return (
+                        <>
+                          <div className="ml-row">
+                            <span className="ml-k">预测概率</span>
+                            <span className={`ml-v ${meta.cls}`}>{meta.label}</span>
+                          </div>
+                          <div className="ml-row">
+                            <span className="ml-k">来源</span>
+                            <span className="ml-v">机器学习预测</span>
+                          </div>
+                          <div className="ml-row compare">
+                            <span className="ml-k">对比</span>
+                            <span className="ml-v">规则预警：未触发；预测预警：已触发</span>
+                          </div>
+                          {r.exception_detail ? <div className="detail-plain">{r.exception_detail}</div> : null}
+                        </>
+                      )
+                    })()}
                   </td>
                   <td>
                     <select
@@ -296,9 +334,9 @@ const WarningException = () => {
 
       <div className="warning-pagination">
         <span>共 {total} 条</span>
-        <button type="button" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>上一页</button>
+        <Button size="sm" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>上一页</Button>
         <span>{page} / {totalPages}</span>
-        <button type="button" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>下一页</button>
+        <Button size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>下一页</Button>
       </div>
 
       {modalOpen ? (
@@ -384,16 +422,12 @@ const WarningException = () => {
                 </div>
               </div>
               <div className="warning-modal-footer">
-                <button type="button" className="btn-ghost" onClick={() => setModalOpen(false)}>取消</button>
-                <button type="submit" className="btn-primary">提交</button>
+                <Button variant="ghost" onClick={() => setModalOpen(false)}>取消</Button>
+                <Button variant="primary" type="submit">提交</Button>
               </div>
             </form>
           </div>
         </div>
-      ) : null}
-
-      {toast ? (
-        <div className={`warning-toast ${toast.kind === 'error' ? 'error' : ''}`}>{toast.message}</div>
       ) : null}
     </div>
   )
