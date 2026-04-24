@@ -315,41 +315,6 @@ const HomePage = () => {
     return Array.from(byArea.values()).sort((a, b) => Number(b.abnormal) - Number(a.abnormal) || b.latestTimeMs - a.latestTimeMs)
   }, [warnings])
 
-  const riskSummary = useMemo(() => {
-    const ml = (warnings || []).filter((w) => String(w.source_type || '') === 'ml' || w.exception_type === '预测预警')
-    const rows = []
-    const byArea = new Map()
-    let sum = 0
-    let cnt = 0
-    for (const w of ml) {
-      if (w.predicted_prob == null || w.predicted_prob === '') continue
-      const p = Number(w.predicted_prob)
-      if (!Number.isFinite(p)) continue
-      sum += p
-      cnt += 1
-      const area = w.plant_area || '未分区'
-      const cur = byArea.get(area) || { area, sum: 0, cnt: 0, max: 0 }
-      cur.sum += p
-      cur.cnt += 1
-      if (p > cur.max) cur.max = p
-      byArea.set(area, cur)
-    }
-    const avg = cnt ? sum / cnt : null
-    const meta = getProbMeta(avg)
-    for (const a of Array.from(byArea.values())) {
-      const areaAvg = a.cnt ? a.sum / a.cnt : null
-      const m = getProbMeta(areaAvg)
-      rows.push({ area: a.area, avg: m.pct, cls: m.cls })
-    }
-    rows.sort((a, b) => (b.avg ?? -1) - (a.avg ?? -1))
-    return {
-      avgPct: meta.pct,
-      avgCls: meta.cls,
-      level: meta.pct == null ? '—' : (meta.pct >= 70 ? '高' : meta.pct >= 40 ? '中' : '低'),
-      areas: rows.slice(0, 8)
-    }
-  }, [warnings])
-
   return (
     <div className="homepage">
       <div className="homepage-grid">
@@ -462,42 +427,6 @@ const HomePage = () => {
             ) : (
               <div className="empty-state">暂无设备数据</div>
             )}
-          </div>
-        </div>
-
-        {/* 风险预测模块（机器学习异常预测可视化） */}
-        <div className="homepage-card risk-card">
-          <div className="card-header">
-            <h3>🧠 风险预测</h3>
-          </div>
-          <div className="card-content">
-            <div className="risk-kpis">
-              <div className="risk-kpi">
-                <div className="risk-kpi-label">整体风险等级</div>
-                <div className={`risk-kpi-value ${riskSummary.avgCls}`}>{riskSummary.level}</div>
-              </div>
-              <div className="risk-kpi">
-                <div className="risk-kpi-label">平均预测概率</div>
-                <div className={`risk-kpi-value ${riskSummary.avgCls}`}>
-                  {riskSummary.avgPct == null ? '—' : `${riskSummary.avgPct}%`}
-                </div>
-              </div>
-            </div>
-            <div className="risk-area-list">
-              {riskSummary.areas.length === 0 ? (
-                <div className="empty-state">暂无预测数据</div>
-              ) : (
-                riskSummary.areas.map((a) => (
-                  <div key={a.area} className="risk-area-row">
-                    <span className="risk-area-name">{a.area}</span>
-                    <span className={`risk-area-prob ${a.cls}`}>{a.avg == null ? '—' : `${a.avg}%`}</span>
-                  </div>
-                ))
-              )}
-            </div>
-            <div className="risk-note">
-              概率阈值：≥70% 高风险（红）/ 40~70% 中风险（橙）/ &lt;40% 低风险（绿）
-            </div>
           </div>
         </div>
 

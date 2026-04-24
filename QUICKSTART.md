@@ -33,17 +33,12 @@ cp .env.example .env    # Linux/Mac
 ```bash
 mysql -u root -p < init.sql
 ```
-
 5. 初始化测试数据（设置测试用户密码）：
-
 ```bash
 node init-test-data.js
 ```
-
 ### 3. 启动项目
-
 在项目根目录运行：
-
 ```bash
 npm run dev
 ```

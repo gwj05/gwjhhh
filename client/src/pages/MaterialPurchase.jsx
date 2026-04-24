@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import api from '../utils/api'
 import { notifyInventoryChanged } from '../utils/inventoryEvents'
 import { useAuth } from '../context/AuthContext'
+import { useLocation, useNavigate } from 'react-router-dom'
 import './MaterialPurchase.css'
 
 const MATERIAL_TYPES = [
@@ -19,6 +20,8 @@ const statusTag = (s) => {
 
 const MaterialPurchase = () => {
   const { user } = useAuth()
+  const location = useLocation()
+  const navigate = useNavigate()
   const isAdmin = user?.role_id === 1
   const isManager = user?.role_id === 2
   const canCreate = [1, 2].includes(user?.role_id)
@@ -31,6 +34,9 @@ const MaterialPurchase = () => {
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [selectedIds, setSelectedIds] = useState(() => new Set())
+  const [batching, setBatching] = useState(false)
+  const [batchReport, setBatchReport] = useState(null)
 
   const [filters, setFilters] = useState({
     material_name: '',
@@ -107,6 +113,32 @@ const MaterialPurchase = () => {
     fetchList()
     fetchStats()
   }, [fetchList, fetchStats])
+
+  // 支持从其他页面跳转携带 material_name，自动填入并触发筛选
+  useEffect(() => {
+    const q = new URLSearchParams(location.search || '')
+    const materialName = (q.get('material_name') || '').trim()
+    const purchaseStatus = (q.get('purchase_status') || '').trim()
+    const farmId = (q.get('farm_id') || '').trim()
+    if (!materialName && !purchaseStatus && !farmId) return
+
+    setFilters((prev) => {
+      const next = { ...prev }
+      if (materialName && (prev.material_name || '') !== materialName) next.material_name = materialName
+      if (purchaseStatus && (prev.purchase_status || '') !== purchaseStatus) next.purchase_status = purchaseStatus
+      if (farmId && isAdmin && (prev.farm_id || '') !== farmId) next.farm_id = farmId
+      return next
+    })
+    setPage(1)
+    // 应用完 URL 参数后清理，避免重复触发
+    navigate('/material/purchase', { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search, isAdmin, navigate])
+
+  useEffect(() => {
+    // 切页/筛选后清空选择，避免误操作跨页数据
+    setSelectedIds(new Set())
+  }, [page, pageSize, filters.material_name, filters.farm_id, filters.purchase_status, filters.from, filters.to])
 
   const reloadMaterialOptions = useCallback(async () => {
     try {
@@ -274,6 +306,143 @@ const MaterialPurchase = () => {
     }
   }
 
+  const toggleSelectRow = (id, checked) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (checked) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }
+
+  const currentPageIds = useMemo(() => (rows || []).map((r) => r.purchase_id), [rows])
+  const isAllSelectedOnPage = useMemo(() => {
+    if (!currentPageIds.length) return false
+    for (const id of currentPageIds) if (!selectedIds.has(id)) return false
+    return true
+  }, [currentPageIds, selectedIds])
+
+  const toggleSelectAllOnPage = (checked) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      for (const id of currentPageIds) {
+        if (checked) next.add(id)
+        else next.delete(id)
+      }
+      return next
+    })
+  }
+
+  const selectedRows = useMemo(() => {
+    const map = new Map((rows || []).map((r) => [r.purchase_id, r]))
+    return Array.from(selectedIds)
+      .map((id) => map.get(id))
+      .filter(Boolean)
+  }, [rows, selectedIds])
+
+  const selectedCount = selectedIds.size
+  const selectedPendingInbound = useMemo(
+    () => selectedRows.filter((r) => r.purchase_status === '待入库'),
+    [selectedRows]
+  )
+
+  const getErrMsg = (err) => {
+    const msg = err?.response?.data?.message || err?.message
+    return msg || '未知错误'
+  }
+
+  const buildReportText = (rep) => {
+    const head = `${rep.title}\n成功：${rep.ok} 条\n失败：${rep.fail} 条\n`
+    const body = (rep.fails || [])
+      .map((f) => `- ${f.purchase_no || f.purchase_id || ''}：${f.message}`)
+      .join('\n')
+    return `${head}\n失败明细：\n${body}\n`
+  }
+
+  const copyReport = async () => {
+    if (!batchReport) return
+    const text = buildReportText(batchReport)
+    try {
+      await navigator.clipboard.writeText(text)
+      showToast('失败清单已复制')
+    } catch {
+      showToast('复制失败，请手动复制', 'error')
+    }
+  }
+
+  const batchInbound = async () => {
+    if (!canInbound) return
+    const targets = selectedPendingInbound
+    if (!targets.length) return showToast('未选中任何「待入库」记录', 'error')
+    if (!window.confirm(`确认将选中的 ${targets.length} 条采购记录批量入库？`)) return
+    try {
+      setBatching(true)
+      const results = await Promise.allSettled(
+        targets.map((r) => api.post(`/material/purchase/inbound/${r.purchase_id}`))
+      )
+      const ok = results.filter((x) => x.status === 'fulfilled').length
+      const fail = results.length - ok
+      if (ok > 0) notifyInventoryChanged()
+      showToast(`批量入库完成：成功 ${ok} 条${fail ? `，失败 ${fail} 条` : ''}`, fail ? 'error' : 'success')
+      if (fail > 0) {
+        const fails = results
+          .map((r, idx) => ({ r, idx }))
+          .filter((x) => x.r.status === 'rejected')
+          .slice(0, 50)
+          .map((x) => ({
+            purchase_id: targets[x.idx]?.purchase_id,
+            purchase_no: targets[x.idx]?.purchase_no,
+            message: getErrMsg(x.r.reason)
+          }))
+        setBatchReport({ title: '批量入库失败清单', ok, fail, fails })
+      }
+      setSelectedIds(new Set())
+      fetchList()
+      fetchStats()
+    } catch (e) {
+      showToast(e.response?.data?.message || '批量入库失败', 'error')
+    } finally {
+      setBatching(false)
+    }
+  }
+
+  const batchDelete = async () => {
+    if (!canDelete) return
+    if (!selectedCount) return showToast('请先勾选要删除的采购记录', 'error')
+    // 后端禁止删除已入库，这里先过滤掉
+    const targets = selectedRows.filter((r) => r.purchase_status !== '已入库')
+    if (!targets.length) return showToast('选中的记录均为「已入库」，不可删除', 'error')
+    if (!window.confirm(`确认删除选中的 ${targets.length} 条采购记录？（已入库不会删除）`)) return
+    try {
+      setBatching(true)
+      const results = await Promise.allSettled(
+        targets.map((r) => api.delete(`/material/purchase/delete/${r.purchase_id}`))
+      )
+      const ok = results.filter((x) => x.status === 'fulfilled').length
+      const fail = results.length - ok
+      showToast(`批量删除完成：成功 ${ok} 条${fail ? `，失败 ${fail} 条` : ''}`, fail ? 'error' : 'success')
+      if (fail > 0) {
+        const fails = results
+          .map((r, idx) => ({ r, idx }))
+          .filter((x) => x.r.status === 'rejected')
+          .slice(0, 50)
+          .map((x) => ({
+            purchase_id: targets[x.idx]?.purchase_id,
+            purchase_no: targets[x.idx]?.purchase_no,
+            message: getErrMsg(x.r.reason)
+          }))
+        setBatchReport({ title: '批量删除失败清单', ok, fail, fails })
+      }
+      setSelectedIds(new Set())
+      fetchList()
+      fetchStats()
+    } catch (e) {
+      showToast(e.response?.data?.message || '批量删除失败', 'error')
+    } finally {
+      setBatching(false)
+    }
+  }
+
   const handleDelete = async (row) => {
     if (!canDelete) return
     if (!window.confirm('确认删除该采购记录？')) return
@@ -364,10 +533,41 @@ const MaterialPurchase = () => {
       </div>
 
       <div className="table-card">
+        {selectedCount > 0 ? (
+          <div className="batch-bar">
+            <div className="batch-left">
+              已选择 <strong>{selectedCount}</strong> 条
+              <span className="batch-sub">（待入库 {selectedPendingInbound.length}）</span>
+            </div>
+            <div className="batch-actions">
+              {canInbound ? (
+                <button className="mini-btn" disabled={batching} onClick={batchInbound}>
+                  批量入库
+                </button>
+              ) : null}
+              {canDelete ? (
+                <button className="mini-btn danger" disabled={batching} onClick={batchDelete}>
+                  批量删除
+                </button>
+              ) : null}
+              <button className="mini-btn" disabled={batching} onClick={() => setSelectedIds(new Set())}>
+                取消选择
+              </button>
+            </div>
+          </div>
+        ) : null}
         {loading ? <div className="loading">加载中...</div> : (
           <table className="purchase-table">
             <thead>
               <tr>
+                <th className="th-check">
+                  <input
+                    type="checkbox"
+                    checked={isAllSelectedOnPage}
+                    onChange={(e) => toggleSelectAllOnPage(e.target.checked)}
+                    aria-label="全选本页"
+                  />
+                </th>
                 <th>采购单号</th>
                 <th>农资名称</th>
                 <th>所属农场</th>
@@ -383,6 +583,14 @@ const MaterialPurchase = () => {
             <tbody>
               {(rows || []).map(r => (
                 <tr key={r.purchase_id}>
+                  <td className="td-check">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(r.purchase_id)}
+                      onChange={(e) => toggleSelectRow(r.purchase_id, e.target.checked)}
+                      aria-label={`选择采购单 ${r.purchase_no}`}
+                    />
+                  </td>
                   <td>{r.purchase_no}</td>
                   <td>{r.material_name}</td>
                   <td>{r.farm_name}</td>
@@ -491,6 +699,22 @@ const MaterialPurchase = () => {
           </div>
         </div>
       )}
+
+      {batchReport ? (
+        <div className="modal" onClick={() => setBatchReport(null)}>
+          <div className="modal-panel batch-report-panel" onClick={(e) => e.stopPropagation()}>
+            <h3>{batchReport.title}</h3>
+            <p className="purchase-hint" style={{ marginTop: 6 }}>
+              成功 <strong>{batchReport.ok}</strong> 条，失败 <strong>{batchReport.fail}</strong> 条（最多展示 50 条失败明细）
+            </p>
+            <textarea className="batch-report-text" readOnly value={buildReportText(batchReport)} />
+            <div className="form-actions">
+              <button className="outline-btn" onClick={() => setBatchReport(null)}>关闭</button>
+              <button className="primary-btn" onClick={copyReport}>复制失败清单</button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {showNewMaterialModal && (
         <div className="modal nested-modal" onClick={() => !newMaterialSubmitting && setShowNewMaterialModal(false)}>

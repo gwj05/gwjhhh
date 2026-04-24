@@ -13,16 +13,13 @@ async function initTestData() {
       database: process.env.DB_NAME || 'smart_agriculture'
     });
     console.log('数据库连接成功');
-    // 加密密码 123456
     const hashedPassword = await bcrypt.hash('123456', 10);
     console.log('密码加密完成:', hashedPassword);
-    // 更新测试用户密码
     const [result] = await connection.execute(
       `UPDATE user SET password = ? WHERE username IN ('admin', 'operator', 'user')`,
       [hashedPassword]
     );
     console.log(`已更新 ${result.affectedRows} 个用户的密码`);
-    // 如果没有用户，则创建测试用户
     const [users] = await connection.execute('SELECT COUNT(*) as count FROM user');
     if (users[0].count === 0) {
       await connection.execute(
@@ -47,6 +44,5 @@ async function initTestData() {
     }
   }
 }
-
 initTestData();
 

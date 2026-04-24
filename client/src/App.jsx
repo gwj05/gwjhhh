@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import HomePage from './pages/HomePage'
+import OverviewPage from './pages/OverviewPage'
 import FarmList from './pages/FarmList'
 import FarmDetail from './pages/FarmDetail'
 import FarmDetailEntry from './pages/FarmDetailEntry'
@@ -51,7 +52,7 @@ function App() {
             <Route index element={<Navigate to="/home" replace />} />
             <Route path="home" element={<Dashboard />} />
             <Route path="homepage" element={<HomePage />} />
-            <Route path="overview" element={<div>系统概览页面（待开发）</div>} />
+            <Route path="overview" element={<OverviewPage />} />
             <Route path="farm/list" element={<FarmList />} />
             <Route path="farm/detail" element={<FarmDetailEntry />} />
             <Route path="farm/detail/:id" element={<FarmDetail />} />

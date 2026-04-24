@@ -34,8 +34,8 @@ const Dashboard = () => {
         },
         {
           icon: '📊',
-          title: '数据统计',
-          description: '查看系统整体数据报表',
+          title: '智能预测',
+          description: '查看预测与决策辅助看板',
           path: '/overview'
         },
         {

@@ -16,7 +16,6 @@ function getStockTag(state) {
 const MaterialWarning = () => {
   const { user } = useAuth()
   const isAdmin = user?.role_id === 1
-  const canUpdateStock = [1, 2, 3].includes(user?.role_id)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -95,60 +94,13 @@ const MaterialWarning = () => {
 
   const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize])
 
-  // 入库弹窗
-  const getNow = () => {
-    const d = new Date()
-    const p = (n) => String(n).padStart(2, '0')
-    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
-  }
-  const [stockModalOpen, setStockModalOpen] = useState(false)
-  const [stockSubmitting, setStockSubmitting] = useState(false)
-  const [stockError, setStockError] = useState('')
-  const [stockMaterial, setStockMaterial] = useState(null)
-  const [stockForm, setStockForm] = useState({ delta_qty: 1, operation_time: getNow(), reason: '' })
-
-  const openInModal = (row) => {
-    if (!canUpdateStock) return
-    setStockMaterial(row)
-    setStockError('')
-    setStockForm({ delta_qty: 1, operation_time: getNow(), reason: '' })
-    setStockModalOpen(true)
-  }
-  const closeInModal = () => {
-    setStockModalOpen(false)
-    setStockSubmitting(false)
-    setStockError('')
-    setStockMaterial(null)
-  }
-  const submitIn = async () => {
-    if (!stockMaterial) return
-    const delta = Number(stockForm.delta_qty)
-    if (Number.isNaN(delta) || delta <= 0) {
-      setStockError('入库数量必须大于 0')
-      return
-    }
-    try {
-      setStockSubmitting(true)
-      const res = await api.post(`/material/stock/${stockMaterial.material_id}`, {
-        change_type: 'IN',
-        delta_qty: delta,
-        operation_time: stockForm.operation_time || null,
-        reason: stockForm.reason || null,
-        source_type: '手动入库'
-      })
-      const before = Number(stockMaterial.stock_num || 0)
-      const after = Number(res.data?.new_stock ?? before + delta)
-      showToast(`入库成功：数量 ${delta}，库存 ${before} → ${after}`)
-      notifyInventoryChanged()
-      closeInModal()
-      fetchData()
-    } catch (e) {
-      const msg = e.response?.data?.message || '入库失败'
-      setStockError(msg)
-      showToast(msg, 'error')
-    } finally {
-      setStockSubmitting(false)
-    }
+  const goPurchase = (row) => {
+    // 引导走“采购→入库”流程：跳转到采购记录页（用农资名称做筛选提示）
+    const q = new URLSearchParams()
+    if (row?.material_name) q.set('material_name', String(row.material_name))
+    q.set('purchase_status', '待入库')
+    if (isAdmin && row?.farm_id) q.set('farm_id', String(row.farm_id))
+    navigate(`/material/purchase?${q.toString()}`)
   }
 
   return (
@@ -235,7 +187,7 @@ const MaterialWarning = () => {
                     <td><span className={`tag ${tag.className}`}>{tag.text}</span></td>
                     <td>
                       <div className="row-actions">
-                        <button className="mini-btn" onClick={() => openInModal(r)}>去入库</button>
+                        <button className="mini-btn" onClick={() => goPurchase(r)}>去采购/入库</button>
                         <button className="mini-btn" onClick={() => navigate('/material/list')}>查看详情</button>
                       </div>
                     </td>
@@ -260,28 +212,6 @@ const MaterialWarning = () => {
           </div>
         </div>
       </div>
-
-      {stockModalOpen && stockMaterial && (
-        <div className="modal" onClick={closeInModal}>
-          <div className="modal-panel" onClick={e => e.stopPropagation()}>
-            <h3>去入库：{stockMaterial.material_name}</h3>
-            <div className="stock-meta">当前库存：<b>{stockMaterial.stock_num}</b></div>
-            <div className="form-grid">
-              <label>入库数量</label>
-              <input type="number" value={stockForm.delta_qty} onChange={e => setStockForm(s => ({ ...s, delta_qty: e.target.value }))} disabled={stockSubmitting} />
-              <label>入库时间</label>
-              <input type="datetime-local" value={stockForm.operation_time} onChange={e => setStockForm(s => ({ ...s, operation_time: e.target.value }))} disabled={stockSubmitting} />
-              <label>备注</label>
-              <input value={stockForm.reason} onChange={e => setStockForm(s => ({ ...s, reason: e.target.value }))} disabled={stockSubmitting} />
-            </div>
-            {stockError ? <div className="stock-error">{stockError}</div> : null}
-            <div className="form-actions">
-              <button className="outline-btn" onClick={closeInModal} disabled={stockSubmitting}>取消</button>
-              <button className="primary-btn" onClick={submitIn} disabled={stockSubmitting}>{stockSubmitting ? '提交中...' : '确认入库'}</button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {toast && <div className={`toast ${toast.kind}`}>{toast.message}</div>}
     </div>

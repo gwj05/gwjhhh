@@ -20,6 +20,26 @@
 .purchase-table th, .purchase-table td { border-bottom: 1px solid #f0f2f5; padding: 10px; text-align: left; vertical-align: top; }
 .purchase-table th { color: #606266; font-weight: 700; }
 
+.th-check, .td-check { width: 44px; }
+.th-check input, .td-check input { width: 16px; height: 16px; }
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #e4e7ed;
+  border-radius: 10px;
+  background: #f5f7fa;
+}
+
+.batch-left { color: #303133; font-size: 13px; }
+.batch-left strong { color: #409eff; }
+.batch-sub { margin-left: 8px; color: #909399; }
+.batch-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
 .tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 .tag-normal { background: #f0f9eb; color: #67c23a; border: 1px solid #e1f3d8; }
 .tag-warn { background: #fff7e6; color: #e6a23c; border: 1px solid #f5dab1; }
@@ -40,6 +60,20 @@
 
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
 .modal-panel { width: 760px; max-width: 100%; background: #fff; border-radius: 12px; border: 1px solid #ebeef5; padding: 16px; }
+.modal-panel.batch-report-panel { width: 820px; }
+.batch-report-text {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  border: 1px solid #dcdfe6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #303133;
+  background: #fafafa;
+}
 .form-grid { display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: start; margin-top: 10px; }
 .form-grid input, .form-grid select { width: 100%; border: 1px solid #dcdfe6; border-radius: 8px; padding: 10px; }
 .helper-text { color: #909399; font-size: 12px; padding-top: 4px; }

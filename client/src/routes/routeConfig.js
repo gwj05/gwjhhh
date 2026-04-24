@@ -3,7 +3,7 @@
 export const routeConfig = [
   { key: 'home', title: '首页', icon: '🏠', path: '/home', roles: [1, 2, 3] },
   { key: 'homepage', title: '系统首页', icon: '📊', path: '/homepage', roles: [1, 2, 3] },
-  { key: 'overview', title: '系统概览', icon: '📊', path: '/overview', roles: [1, 2] },
+  { key: 'overview', title: '智能预测', icon: '🧠', path: '/overview', roles: [1, 2] },
   {
     key: 'farm',
     title: '农场管理',

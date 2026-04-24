@@ -5,7 +5,7 @@ import { baseQueryWithFarm } from '../baseQueryWithFarm'
 export const api = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithFarm,
-  tagTypes: ['Warnings', 'StockWarnings', 'Auth', 'Farm', 'Homepage'],
+  tagTypes: ['Warnings', 'StockWarnings', 'Auth', 'Farm', 'Homepage', 'Overview'],
   endpoints: (builder) => ({
     getHomeWeather: builder.query({
       query: (farmKey) => ({
@@ -49,6 +49,36 @@ export const api = createApi({
       }),
       providesTags: (result, err, farmKey) => [{ type: 'Homepage', id: `vid-${farmKey}` }]
     }),
+    getHomePestRisk: builder.query({
+      query: (farmKey) => ({
+        url: '/homepage/pest-risk',
+        params: farmKey === 'all' ? { farm_id: 'all' } : { farm_id: farmKey }
+      }),
+      providesTags: (result, err, farmKey) => [{ type: 'Homepage', id: `pest-${farmKey}` }]
+    }),
+    getOverviewAdvanced: builder.query({
+      query: (farmKey) => ({
+        url: '/overview/advanced',
+        params: farmKey === 'all' ? { farm_id: 'all' } : { farm_id: farmKey }
+      }),
+      providesTags: (result, err, farmKey) => [{ type: 'Overview', id: `adv-${farmKey}` }]
+    }),
+    switchOverviewIrrigationStrategy: builder.mutation({
+      query: ({ farmKey, strategy_key }) => ({
+        url: '/overview/irrigation/switch',
+        method: 'POST',
+        body: { farm_id: farmKey === 'all' ? 'all' : farmKey, strategy_key }
+      }),
+      invalidatesTags: ['Overview']
+    }),
+    createOverviewPurchaseDraft: builder.mutation({
+      query: ({ items, supplier }) => ({
+        url: '/overview/purchase/draft',
+        method: 'POST',
+        body: { items, supplier }
+      }),
+      invalidatesTags: ['Overview', 'Homepage', 'StockWarnings']
+    }),
     getHomeMapOverview: builder.query({
       query: (farmKey) => ({
         url: '/homepage/map-overview',
@@ -84,6 +114,10 @@ export const {
   useGetHomeDeviceStatsQuery,
   useGetHomeStockWarningsQuery,
   useGetHomeVideosQuery,
+  useGetHomePestRiskQuery,
+  useGetOverviewAdvancedQuery,
+  useSwitchOverviewIrrigationStrategyMutation,
+  useCreateOverviewPurchaseDraftMutation,
   useGetHomeMapOverviewQuery,
   useGetWarningListQuery,
   useMarkWarningReadMutation,

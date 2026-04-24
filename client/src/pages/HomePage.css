@@ -10,6 +10,7 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
   margin-bottom: 20px;
+  align-items: stretch;
 }
 
 .homepage-card {
@@ -20,6 +21,8 @@
   border: 1px solid var(--cockpit-border);
   backdrop-filter: blur(14px);
 }
+
+/* 预留：后续首页如需两卡等高/滚动可在此扩展 */
 
 .card-header {
   padding: 18px 20px;
