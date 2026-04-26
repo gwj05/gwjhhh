@@ -437,7 +437,7 @@ const MaterialList = () => {
         ) : rows.length === 0 ? (
           <div className="empty-state-panel">暂无数据</div>
         ) : (
-          <table className="material-table">
+          <table className="material-table mobile-card-table">
             <thead>
               <tr>
                 <th>农资名称</th>
@@ -459,15 +459,15 @@ const MaterialList = () => {
                 const rowDanger = r.stock_state === '缺货'
                 return (
                   <tr key={r.material_id} className={rowDanger ? 'row-danger' : ''}>
-                    <td>{r.material_name}</td>
-                    <td>{r.farm_name}</td>
-                    <td>{r.material_type}</td>
-                    <td>{r.brand || '--'}</td>
-                    <td>{r.spec || '--'}</td>
-                    <td>{r.price != null ? r.price : '--'}</td>
-                    <td>{r.stock_num}</td>
-                    <td>{r.safety_stock_num}</td>
-                    <td>
+                    <td data-label="农资名称">{r.material_name}</td>
+                    <td data-label="所属农场">{r.farm_name}</td>
+                    <td data-label="类型">{r.material_type}</td>
+                    <td data-label="品牌">{r.brand || '--'}</td>
+                    <td data-label="规格">{r.spec || '--'}</td>
+                    <td data-label="单价">{r.price != null ? r.price : '--'}</td>
+                    <td data-label="库存">{r.stock_num}</td>
+                    <td data-label="安全库存">{r.safety_stock_num}</td>
+                    <td data-label="状态">
                       {(r.stock_state === '库存不足' || r.stock_state === '缺货') ? (
                         <button
                           className={`tag ${tag.className} tag-link`}
@@ -480,8 +480,8 @@ const MaterialList = () => {
                         <span className={`tag ${tag.className}`}>{tag.text}</span>
                       )}
                     </td>
-                    <td>{r.created_at ? new Date(r.created_at).toLocaleString() : '--'}</td>
-                    <td>
+                    <td data-label="创建时间">{r.created_at ? new Date(r.created_at).toLocaleString() : '--'}</td>
+                    <td data-label="操作">
                       <div className="row-actions">
                         <button className="mini-btn" onClick={() => openDetail(r)}>
                           详情

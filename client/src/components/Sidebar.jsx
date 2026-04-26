@@ -8,7 +8,7 @@ import { useFarmKey } from '../hooks/useFarmKey'
 import { api as storeApi, useGetHomeStockWarningsQuery } from '../store/services/api'
 import './Sidebar.css'
 
-const Sidebar = () => {
+const Sidebar = ({ mobileOpen = false, onNavigate = () => {} }) => {
   const { user } = useAuth()
   const dispatch = useDispatch()
   const farmKey = useFarmKey()
@@ -94,16 +94,18 @@ const Sidebar = () => {
     } else if (menu.path) {
       // 无子菜单，直接跳转
       navigate(menu.path)
+      onNavigate()
     }
   }
 
   const handleChildClick = (e, childPath) => {
     e.stopPropagation()
     navigate(childPath)
+    onNavigate()
   }
 
   return (
-    <div className="sidebar">
+    <div className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
       <div className="sidebar-content">
         {menuConfig.map(menu => {
           if (!isMenuVisible(menu) || (menu.children && !hasVisibleChildren(menu))) {

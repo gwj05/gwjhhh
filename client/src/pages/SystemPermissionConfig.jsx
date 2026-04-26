@@ -26,7 +26,7 @@ export default function SystemPermissionConfig() {
         {err ? (
           <div>{err}</div>
         ) : (
-          <table className="system-table">
+          <table className="system-table mobile-card-table">
             <thead>
               <tr>
                 <th>角色</th>
@@ -38,10 +38,10 @@ export default function SystemPermissionConfig() {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.role_id}>
-                  <td>{r.role_name}</td>
-                  <td>{r.data_scope}</td>
-                  <td>{r.user_manage}</td>
-                  <td>{r.can_switch_global_farm ? '允许' : '不允许'}</td>
+                  <td data-label="角色">{r.role_name}</td>
+                  <td data-label="数据范围">{r.data_scope}</td>
+                  <td data-label="用户管理">{r.user_manage}</td>
+                  <td data-label="全局农场切换">{r.can_switch_global_farm ? '允许' : '不允许'}</td>
                 </tr>
               ))}
             </tbody>

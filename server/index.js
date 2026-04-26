@@ -21,6 +21,7 @@ const environmentRoutes = require('./routes/environment');
 const pool = require('./config/database');
 const { runInventoryRules, trainMlPredictor } = require('./lib/smartWarning');
 const { ensureAuditLogTable } = require('./lib/auditLog');
+const sqliteDb = require('./db/sqlite');
 
 dotenv.config();
 
@@ -47,6 +48,91 @@ app.use('/api/crop', cropRoutes);
 app.use('/api/material', materialRoutes);
 app.use('/api/operation', operationRoutes);
 app.use('/api/environment', environmentRoutes);
+
+// IoT 缓存接口（SQLite）
+app.get('/api/iot/latest', (req, res) => {
+  try {
+    const rows = sqliteDb
+      .prepare(
+        `
+        SELECT id, device_id, temperature, humidity, soil_moisture, recorded_at
+        FROM sensor_readings
+        ORDER BY datetime(recorded_at) DESC, id DESC
+        LIMIT 20
+        `
+      )
+      .all()
+    res.json({ code: 200, data: rows })
+  } catch (error) {
+    console.error('GET /api/iot/latest error:', error.message)
+    res.status(500).json({ code: 500, message: '服务器错误' })
+  }
+})
+
+app.get('/api/iot/devices', (req, res) => {
+  try {
+    const rows = sqliteDb
+      .prepare(
+        `
+        SELECT id, device_id, online, last_report_time
+        FROM device_status
+        ORDER BY id DESC
+        `
+      )
+      .all()
+    res.json({ code: 200, data: rows })
+  } catch (error) {
+    console.error('GET /api/iot/devices error:', error.message)
+    res.status(500).json({ code: 500, message: '服务器错误' })
+  }
+})
+
+app.post('/api/iot/report', (req, res) => {
+  try {
+    const { device_id, temperature = null, humidity = null, soil_moisture = null } = req.body || {}
+    if (!device_id || String(device_id).trim() === '') {
+      return res.status(400).json({ code: 400, message: 'device_id 不能为空' })
+    }
+
+    sqliteDb
+      .prepare(
+        `
+        INSERT INTO sensor_readings (device_id, temperature, humidity, soil_moisture)
+        VALUES (?, ?, ?, ?)
+        `
+      )
+      .run(String(device_id), temperature, humidity, soil_moisture)
+
+    sqliteDb
+      .prepare(
+        `
+        INSERT INTO device_status (device_id, online, last_report_time)
+        VALUES (?, 1, CURRENT_TIMESTAMP)
+        ON CONFLICT(device_id) DO UPDATE SET
+          online = 1,
+          last_report_time = CURRENT_TIMESTAMP
+        `
+      )
+      .run(String(device_id))
+
+    const latest = sqliteDb
+      .prepare(
+        `
+        SELECT id, device_id, temperature, humidity, soil_moisture, recorded_at
+        FROM sensor_readings
+        WHERE device_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+        `
+      )
+      .get(String(device_id))
+
+    res.json({ code: 200, data: latest ? [latest] : [] })
+  } catch (error) {
+    console.error('POST /api/iot/report error:', error.message)
+    res.status(500).json({ code: 500, message: '服务器错误' })
+  }
+})
 
 // 健康检查
 app.get('/api/health', (req, res) => {

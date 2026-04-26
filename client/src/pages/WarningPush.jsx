@@ -93,7 +93,7 @@ const WarningPush = () => {
         ) : rows.length === 0 ? (
           <div className="warning-empty">暂无推送记录</div>
         ) : (
-          <table className="warning-data-table">
+          <table className="warning-data-table mobile-card-table">
             <thead>
               <tr>
                 <th>推送时间</th>
@@ -109,16 +109,16 @@ const WarningPush = () => {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.push_id}>
-                  <td>{r.push_time ? new Date(r.push_time).toLocaleString() : '—'}</td>
-                  <td>{r.push_method || '—'}</td>
-                  <td>{r.receiver_name || r.receiver_id}</td>
-                  <td>
+                  <td data-label="推送时间">{r.push_time ? new Date(r.push_time).toLocaleString() : '—'}</td>
+                  <td data-label="方式">{r.push_method || '—'}</td>
+                  <td data-label="接收人">{r.receiver_name || r.receiver_id}</td>
+                  <td data-label="农场 / 作物 / 区域">
                     {r.farm_name} · {r.crop_name || '—'} · {r.plant_area || '—'}
                   </td>
-                  <td>{r.exception_type}</td>
-                  <td>{r.handle_status}</td>
-                  <td>{r.read_status === '已读' || r.read_status === 1 || r.read_status === '1' ? '已读' : '未读'}</td>
-                  <td style={{ maxWidth: 200, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <td data-label="异常类型">{r.exception_type}</td>
+                  <td data-label="处理状态">{r.handle_status}</td>
+                  <td data-label="已读">{r.read_status === '已读' || r.read_status === 1 || r.read_status === '1' ? '已读' : '未读'}</td>
+                  <td data-label="详情" style={{ maxWidth: 260, whiteSpace: 'normal', overflowWrap: 'anywhere' }}>
                     {r.exception_detail || '—'}
                   </td>
                 </tr>

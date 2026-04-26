@@ -40,3 +40,7 @@
   position: relative;
   z-index: 1;
 }
+
+.sidebar-mobile-backdrop {
+  display: none;
+}

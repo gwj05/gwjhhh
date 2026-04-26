@@ -253,7 +253,7 @@ const WarningException = () => {
         ) : rows.length === 0 ? (
           <div className="warning-empty">暂无记录</div>
         ) : (
-          <table className="warning-data-table">
+          <table className="warning-data-table mobile-card-table">
             <thead>
               <tr>
                 <th>时间</th>
@@ -270,8 +270,8 @@ const WarningException = () => {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.exception_id}>
-                  <td>{r.exception_time ? new Date(r.exception_time).toLocaleString() : '—'}</td>
-                  <td>
+                  <td data-label="时间">{r.exception_time ? new Date(r.exception_time).toLocaleString() : '—'}</td>
+                  <td data-label="类型">
                     <div className="type-cell">
                       <span>{(String(r.source_type || '') === 'ml' || r.exception_type === '预测预警') ? '预测预警' : r.exception_type}</span>
                       {(String(r.source_type || '') === 'ml' || r.exception_type === '预测预警') ? (
@@ -279,18 +279,18 @@ const WarningException = () => {
                       ) : null}
                     </div>
                   </td>
-                  <td>{SOURCE_LABEL[r.source_type] || r.source_type || '手动'}</td>
-                  <td>{LEVEL_LABEL[r.warning_level] || r.warning_level}</td>
-                  <td>
+                  <td data-label="来源">{SOURCE_LABEL[r.source_type] || r.source_type || '手动'}</td>
+                  <td data-label="等级">{LEVEL_LABEL[r.warning_level] || r.warning_level}</td>
+                  <td data-label="农场 / 区域 / 作物">
                     {r.farm_name} · {r.plant_area || '—'} · {r.crop_name || '—'}
                   </td>
-                  <td>{r.device_name}</td>
-                  <td>
+                  <td data-label="设备">{r.device_name}</td>
+                  <td data-label="状态">
                     <span className={`badge-status ${r.handle_status === '未处理' ? 'pending' : 'done'}`}>
                       {r.handle_status}
                     </span>
                   </td>
-                  <td className="detail-cell">
+                  <td className="detail-cell" data-label="详情">
                     {(() => {
                       const isMl = String(r.source_type || '') === 'ml' || r.exception_type === '预测预警'
                       if (!isMl) return <span className="detail-plain">{r.exception_detail || '—'}</span>
@@ -314,7 +314,7 @@ const WarningException = () => {
                       )
                     })()}
                   </td>
-                  <td>
+                  <td data-label="操作">
                     <select
                       value={r.handle_status}
                       onChange={(e) => updateStatus(r.exception_id, e.target.value)}

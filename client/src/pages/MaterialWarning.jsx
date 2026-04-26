@@ -162,7 +162,7 @@ const MaterialWarning = () => {
         ) : rows.length === 0 ? (
           <div className="empty-state-panel">暂无预警数据</div>
         ) : (
-          <table className="warning-table">
+          <table className="warning-table mobile-card-table">
             <thead>
               <tr>
                 <th>农资名称</th>
@@ -179,13 +179,13 @@ const MaterialWarning = () => {
                 const tag = getStockTag(r.stock_state)
                 return (
                   <tr key={r.material_id} className={r.stock_state === '缺货' ? 'row-danger' : ''}>
-                    <td>{r.material_name}</td>
-                    <td>{r.farm_name}</td>
-                    <td>{r.material_type}</td>
-                    <td>{r.stock_num}</td>
-                    <td>{r.safety_stock_num}</td>
-                    <td><span className={`tag ${tag.className}`}>{tag.text}</span></td>
-                    <td>
+                    <td data-label="农资名称">{r.material_name}</td>
+                    <td data-label="所属农场">{r.farm_name}</td>
+                    <td data-label="类型">{r.material_type}</td>
+                    <td data-label="当前库存">{r.stock_num}</td>
+                    <td data-label="安全库存">{r.safety_stock_num}</td>
+                    <td data-label="状态"><span className={`tag ${tag.className}`}>{tag.text}</span></td>
+                    <td data-label="操作">
                       <div className="row-actions">
                         <button className="mini-btn" onClick={() => goPurchase(r)}>去采购/入库</button>
                         <button className="mini-btn" onClick={() => navigate('/material/list')}>查看详情</button>

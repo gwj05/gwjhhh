@@ -281,7 +281,7 @@ const IrrigateRecord = () => {
         {loading ? (
           <div className="loading">加载中...</div>
         ) : (
-          <table className="op-table">
+          <table className="op-table mobile-card-table">
             <thead>
               <tr>
                 <th>农场</th>
@@ -299,17 +299,17 @@ const IrrigateRecord = () => {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.record_id}>
-                  <td>{r.farm_name || '--'}</td>
-                  <td>{r.area_name || '--'}</td>
-                  <td>{r.crop_name || '--'}</td>
-                  <td>{r.water_volume != null ? r.water_volume : '--'}</td>
-                  <td>{r.method || '--'}</td>
-                  <td>{r.duration_minutes != null ? r.duration_minutes : '--'}</td>
-                  <td>{r.operation_detail || '--'}</td>
-                  <td>{r.operation_time ? new Date(r.operation_time).toLocaleString() : '--'}</td>
-                  <td>{r.operator_name || '--'}</td>
+                  <td data-label="农场">{r.farm_name || '--'}</td>
+                  <td data-label="区域">{r.area_name || '--'}</td>
+                  <td data-label="作物">{r.crop_name || '--'}</td>
+                  <td data-label="用水量(L)">{r.water_volume != null ? r.water_volume : '--'}</td>
+                  <td data-label="灌溉方式">{r.method || '--'}</td>
+                  <td data-label="时长(分钟)">{r.duration_minutes != null ? r.duration_minutes : '--'}</td>
+                  <td data-label="操作内容">{r.operation_detail || '--'}</td>
+                  <td data-label="操作时间">{r.operation_time ? new Date(r.operation_time).toLocaleString() : '--'}</td>
+                  <td data-label="操作人">{r.operator_name || '--'}</td>
                   {canDelete ? (
-                    <td>
+                    <td data-label="操作">
                       <button type="button" className="mini-btn danger" onClick={() => handleDelete(r)}>
                         删除
                       </button>

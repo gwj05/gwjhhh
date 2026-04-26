@@ -189,7 +189,7 @@ const OperationRecordQuery = () => {
         {loading ? (
           <div className="loading">加载中...</div>
         ) : (
-          <table className="op-table">
+          <table className="op-table mobile-card-table">
             <thead>
               <tr>
                 <th>操作类型</th>
@@ -205,18 +205,18 @@ const OperationRecordQuery = () => {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.record_id}>
-                  <td>{r.operation_type}</td>
-                  <td>{r.farm_name || '--'}</td>
-                  <td>{r.area_name || '--'}</td>
-                  <td>{r.crop_name || '--'}</td>
-                  <td>
+                  <td data-label="操作类型">{r.operation_type}</td>
+                  <td data-label="农场">{r.farm_name || '--'}</td>
+                  <td data-label="区域">{r.area_name || '--'}</td>
+                  <td data-label="作物">{r.crop_name || '--'}</td>
+                  <td data-label="农资">
                     {r.operation_type === '施肥'
                       ? r.material_name || '--'
                       : '--'}
                   </td>
-                  <td>{r.operation_detail || '--'}</td>
-                  <td>{r.operation_time ? new Date(r.operation_time).toLocaleString() : '--'}</td>
-                  <td>{r.operator_name || '--'}</td>
+                  <td data-label="操作内容">{r.operation_detail || '--'}</td>
+                  <td data-label="操作时间">{r.operation_time ? new Date(r.operation_time).toLocaleString() : '--'}</td>
+                  <td data-label="操作人">{r.operator_name || '--'}</td>
                 </tr>
               ))}
             </tbody>

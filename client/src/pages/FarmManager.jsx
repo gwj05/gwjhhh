@@ -435,10 +435,10 @@ const FarmManager = () => {
           ) : (
             <>
               <div className="farm-table-wrapper">
-                <table className="farm-table">
+                <table className="farm-table mobile-card-table">
                   <thead>
                     <tr>
-                      <th>
+                      <th className="th-check">
                         <input
                           type="checkbox"
                           checked={
@@ -480,7 +480,7 @@ const FarmManager = () => {
                     ) : (
                       principals.map(principal => (
                         <tr key={principal.binding_id}>
-                          <td>
+                          <td className="td-check">
                             <input
                               type="checkbox"
                               checked={selectedIds.includes(principal.binding_id)}
@@ -493,14 +493,14 @@ const FarmManager = () => {
                               }}
                             />
                           </td>
-                          <td>{principal.real_name}</td>
-                          <td>{principal.phone}</td>
-                          <td>{principal.role_name}</td>
-                          <td>{getPrincipalTypeTag(principal.principal_type)}</td>
-                          <td>{getPermissionScopeTag(principal.permission_scope)}</td>
-                          <td>{getPermissionTags(principal)}</td>
-                          <td>{new Date(principal.bind_time).toLocaleString('zh-CN')}</td>
-                          <td>
+                          <td data-label="姓名">{principal.real_name}</td>
+                          <td data-label="手机号">{principal.phone}</td>
+                          <td data-label="角色">{principal.role_name}</td>
+                          <td data-label="负责人类型">{getPrincipalTypeTag(principal.principal_type)}</td>
+                          <td data-label="权限范围">{getPermissionScopeTag(principal.permission_scope)}</td>
+                          <td data-label="权限模块">{getPermissionTags(principal)}</td>
+                          <td data-label="绑定时间">{new Date(principal.bind_time).toLocaleString('zh-CN')}</td>
+                          <td data-label="操作">
                             <button
                               className="table-btn"
                               onClick={() => handleOpenPermissionForm(principal)}
@@ -634,7 +634,7 @@ const FarmManager = () => {
           </div>
 
           <div className="farm-table-wrapper">
-            <table className="farm-table">
+            <table className="farm-table mobile-card-table">
               <thead>
                 <tr>
                   <th>农场名称</th>
@@ -661,18 +661,18 @@ const FarmManager = () => {
                 ) : (
                   logs.map(log => (
                     <tr key={log.log_id}>
-                      <td>{log.farm_name || '-'}</td>
-                      <td>{log.real_name || '-'}</td>
-                      <td>
+                      <td data-label="农场名称">{log.farm_name || '-'}</td>
+                      <td data-label="负责人姓名">{log.real_name || '-'}</td>
+                      <td data-label="操作类型">
                         <span className={`log-type log-type-${log.operation_type}`}>
                           {log.operation_type}
                         </span>
                       </td>
-                      <td>{log.operation_content || '-'}</td>
-                      <td>
+                      <td data-label="操作内容">{log.operation_content || '-'}</td>
+                      <td data-label="操作时间">
                         {new Date(log.operation_time).toLocaleString('zh-CN')}
                       </td>
-                      <td>{log.operator_name || '-'}</td>
+                      <td data-label="操作人">{log.operator_name || '-'}</td>
                     </tr>
                   ))
                 )}

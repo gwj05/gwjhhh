@@ -47,6 +47,21 @@
   gap: var(--space-6);
 }
 
+.topbar-hamburger {
+  display: none;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--cockpit-border);
+  background: rgba(34, 211, 238, 0.1);
+  color: var(--cockpit-text);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .global-farm-indicator {
   font-size: 12px;
   color: rgba(240, 249, 255, 0.92);

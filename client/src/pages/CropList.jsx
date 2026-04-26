@@ -526,10 +526,10 @@ const CropList = () => {
             ))}
           </div>
         ) : (
-          <table className="crop-table">
+          <table className="crop-table mobile-card-table">
             <thead>
               <tr>
-                <th>
+                <th className="th-check">
                   <input
                     type="checkbox"
                     checked={selectedIds.length === crops.length && crops.length > 0}
@@ -581,14 +581,14 @@ const CropList = () => {
               ) : (
                 crops.map(crop => (
                   <tr key={crop.crop_id}>
-                    <td>
+                    <td className="td-check">
                       <input
                         type="checkbox"
                         checked={selectedIds.includes(crop.crop_id)}
                         onChange={() => handleSelectOne(crop.crop_id)}
                       />
                     </td>
-                    <td>
+                    <td data-label="作物名称">
                       <span
                         className="crop-name-cell"
                         onMouseEnter={() => {
@@ -686,22 +686,22 @@ const CropList = () => {
                         </div>
                       )}
                     </td>
-                    <td>{crop.crop_category || '--'}</td>
-                    <td>{crop.farm_name}</td>
-                    <td>{crop.plant_area || '--'}</td>
-                    <td>{crop.sow_time ? crop.sow_time.split('T')[0] : '--'}</td>
-                    <td>{crop.growth_cycle ? `${crop.growth_cycle}天` : '--'}</td>
-                    <td className="col-center">
+                    <td data-label="作物类型">{crop.crop_category || '--'}</td>
+                    <td data-label="种植农场">{crop.farm_name}</td>
+                    <td data-label="种植区域">{crop.plant_area || '--'}</td>
+                    <td data-label="种植时间">{crop.sow_time ? crop.sow_time.split('T')[0] : '--'}</td>
+                    <td data-label="生长周期">{crop.growth_cycle ? `${crop.growth_cycle}天` : '--'}</td>
+                    <td className="col-center" data-label="适宜湿度">
                       {crop.suitable_humidity_min && crop.suitable_humidity_max
                         ? `${crop.suitable_humidity_min}-${crop.suitable_humidity_max}%`
                         : '--'}
                     </td>
-                    <td className="col-center">
+                    <td className="col-center" data-label="适宜pH">
                       {crop.suitable_ph_min && crop.suitable_ph_max
                         ? `${crop.suitable_ph_min}-${crop.suitable_ph_max}`
                         : '--'}
                     </td>
-                    <td className="col-center">
+                    <td className="col-center" data-label="状态">
                       <span
                         className="status-clickable"
                         onClick={() => {
@@ -716,7 +716,7 @@ const CropList = () => {
                         {statusTag(crop.status)}
                       </span>
                     </td>
-                    <td className="col-center">
+                    <td className="col-center" data-label="操作">
                       <button
                         className="action-btn edit-btn"
                         onClick={() => handleEdit(crop)}

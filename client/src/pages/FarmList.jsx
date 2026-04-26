@@ -320,10 +320,10 @@ const FarmList = () => {
             </button>
           </div>
         )}
-        <table className="farm-table">
+        <table className="farm-table mobile-card-table">
           <thead>
             <tr>
-              <th>
+              <th className="th-check">
                 <input
                   type="checkbox"
                   checked={
@@ -363,7 +363,7 @@ const FarmList = () => {
             ) : (
               farms.map(farm => (
                 <tr key={farm.farm_id}>
-                  <td>
+                  <td className="td-check">
                     <input
                       type="checkbox"
                       checked={selectedIds.includes(farm.farm_id)}
@@ -371,6 +371,7 @@ const FarmList = () => {
                     />
                   </td>
                   <td
+                    data-label="农场名称"
                     className="farm-name-cell"
                     onMouseEnter={() => handleMouseEnterFarm(farm.farm_id)}
                     onMouseLeave={handleMouseLeaveFarm}
@@ -410,10 +411,10 @@ const FarmList = () => {
                       </div>
                     )}
                   </td>
-                  <td>{farm.principal_name || '-'}</td>
-                  <td className="col-center">{farm.phone || '-'}</td>
-                  <td>{statusTag(farm.status)}</td>
-                  <td>
+                  <td data-label="负责人">{farm.principal_name || '-'}</td>
+                  <td className="col-center" data-label="联系电话">{farm.phone || '-'}</td>
+                  <td data-label="状态">{statusTag(farm.status)}</td>
+                  <td data-label="操作">
                     <button className="table-btn" onClick={() => handleEdit(farm)}>
                       <span className="btn-icon">✏️</span>
                       编辑

@@ -186,7 +186,7 @@ const WarningDevice = () => {
         ) : rows.length === 0 ? (
           <div className="warning-empty">暂无设备</div>
         ) : (
-          <table className="warning-data-table">
+          <table className="warning-data-table mobile-card-table">
             <thead>
               <tr>
                 <th>设备</th>
@@ -202,18 +202,18 @@ const WarningDevice = () => {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.device_id}>
-                  <td>{r.device_name}</td>
-                  <td>{r.farm_name}</td>
-                  <td>{r.monitor_area}</td>
-                  <td>{r.install_location}</td>
-                  <td>
+                  <td data-label="设备">{r.device_name}</td>
+                  <td data-label="农场">{r.farm_name}</td>
+                  <td data-label="监控区域">{r.monitor_area}</td>
+                  <td data-label="安装位置">{r.install_location}</td>
+                  <td data-label="状态">
                     <span className={`badge-status ${STATUS_CLASS[r.device_status] || 'offline'}`}>
                       {r.device_status}
                     </span>
                   </td>
-                  <td>{r.last_online_time ? new Date(r.last_online_time).toLocaleString() : '—'}</td>
-                  <td>{r.device_category || '—'}</td>
-                  <td>
+                  <td data-label="最近在线">{r.last_online_time ? new Date(r.last_online_time).toLocaleString() : '—'}</td>
+                  <td data-label="类别">{r.device_category || '—'}</td>
+                  <td data-label="操作">
                     <div className="warning-actions">
                       <button type="button" className="btn-ghost" onClick={() => openEdit(r)}>
                         编辑

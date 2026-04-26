@@ -557,7 +557,7 @@ const MaterialPurchase = () => {
           </div>
         ) : null}
         {loading ? <div className="loading">加载中...</div> : (
-          <table className="purchase-table">
+          <table className="purchase-table mobile-card-table">
             <thead>
               <tr>
                 <th className="th-check">
@@ -591,16 +591,16 @@ const MaterialPurchase = () => {
                       aria-label={`选择采购单 ${r.purchase_no}`}
                     />
                   </td>
-                  <td>{r.purchase_no}</td>
-                  <td>{r.material_name}</td>
-                  <td>{r.farm_name}</td>
-                  <td>{r.purchase_qty}</td>
-                  <td>{r.unit_price}</td>
-                  <td>{r.total_amount}</td>
-                  <td><span className={`tag ${statusTag(r.purchase_status)}`}>{r.purchase_status}</span></td>
-                  <td>{r.purchase_time ? new Date(r.purchase_time).toLocaleString() : '--'}</td>
-                  <td>{r.operator_name || '--'}</td>
-                  <td>
+                  <td data-label="采购单号">{r.purchase_no}</td>
+                  <td data-label="农资名称">{r.material_name}</td>
+                  <td data-label="所属农场">{r.farm_name}</td>
+                  <td data-label="数量">{r.purchase_qty}</td>
+                  <td data-label="单价">{r.unit_price}</td>
+                  <td data-label="总金额">{r.total_amount}</td>
+                  <td data-label="采购状态"><span className={`tag ${statusTag(r.purchase_status)}`}>{r.purchase_status}</span></td>
+                  <td data-label="采购时间">{r.purchase_time ? new Date(r.purchase_time).toLocaleString() : '--'}</td>
+                  <td data-label="操作人">{r.operator_name || '--'}</td>
+                  <td data-label="操作">
                     <div className="row-actions">
                       {canInbound && r.purchase_status === '待入库' && (
                         <button className="mini-btn" onClick={() => handleInbound(r)}>入库</button>

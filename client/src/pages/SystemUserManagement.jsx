@@ -162,7 +162,7 @@ export default function SystemUserManagement() {
           <Button size="sm" onClick={() => { setPage(1); loadUsers() }}>查询</Button>
         </div>
 
-        <table className="system-table">
+        <table className="system-table mobile-card-table">
           <thead>
             <tr>
               <th>ID</th><th>用户名</th><th>姓名</th><th>手机</th><th>角色</th><th>所属农场</th><th>操作</th>
@@ -173,13 +173,13 @@ export default function SystemUserManagement() {
               const canOp = canOperateRow(r)
               return (
                 <tr key={r.user_id}>
-                  <td>{r.user_id}</td>
-                  <td>{r.username}</td>
-                  <td>{r.real_name}</td>
-                  <td>{r.phone}</td>
-                  <td>{r.role_name}</td>
-                  <td>{r.farm_name || '-'}</td>
-                  <td>
+                  <td data-label="ID">{r.user_id}</td>
+                  <td data-label="用户名">{r.username}</td>
+                  <td data-label="姓名">{r.real_name}</td>
+                  <td data-label="手机">{r.phone}</td>
+                  <td data-label="角色">{r.role_name}</td>
+                  <td data-label="所属农场">{r.farm_name || '-'}</td>
+                  <td data-label="操作">
                     <div className="system-actions">
                       <Button size="sm" onClick={() => openEdit(r)} disabled={!canOp}>编辑</Button>
                       <Button size="sm" variant="danger" onClick={() => remove(r)} disabled={!canOp}>删除</Button>

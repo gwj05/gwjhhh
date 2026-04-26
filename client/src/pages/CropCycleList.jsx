@@ -73,7 +73,7 @@ const CropCycleList = () => {
         ) : rows.length === 0 ? (
           <div className="empty-state-panel">当前农场暂无生长周期数据</div>
         ) : (
-          <table className="cycle-table">
+          <table className="cycle-table mobile-card-table">
             <thead>
               <tr>
                 <th>作物</th>
@@ -89,16 +89,16 @@ const CropCycleList = () => {
             <tbody>
               {rows.map(r => (
                 <tr key={r.crop_id}>
-                  <td>{r.crop_name}</td>
-                  <td>{r.plant_area || '--'}</td>
-                  <td>{r.farm_name}</td>
-                  <td>{r.sow_time ? new Date(r.sow_time).toLocaleDateString() : '--'}</td>
-                  <td>{r.expected_harvest_date ? new Date(r.expected_harvest_date).toLocaleDateString() : '--'}</td>
-                  <td>
+                  <td data-label="作物">{r.crop_name}</td>
+                  <td data-label="种植区域">{r.plant_area || '--'}</td>
+                  <td data-label="农场">{r.farm_name}</td>
+                  <td data-label="种植时间">{r.sow_time ? new Date(r.sow_time).toLocaleDateString() : '--'}</td>
+                  <td data-label="预计收获">{r.expected_harvest_date ? new Date(r.expected_harvest_date).toLocaleDateString() : '--'}</td>
+                  <td data-label="阶段">
                     <span className="stage-chip">{r.current_stage_label}</span>
                   </td>
-                  <td>{r.stage_progress ?? 0}%</td>
-                  <td>
+                  <td data-label="进度">{r.stage_progress ?? 0}%</td>
+                  <td data-label="操作">
                     <button
                       className="primary-btn"
                       onClick={() => navigate(`/crop/cycle/detail/${r.crop_id}`)}

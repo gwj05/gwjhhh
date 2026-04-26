@@ -1,0 +1,351 @@
+/* 通用响应式适配（不影响 PC） */
+
+html,
+body,
+#root {
+  width: 100%;
+  max-width: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* 平板：<=1024px */
+@media (max-width: 1024px) {
+  :root {
+    --sidebar-width: 220px;
+  }
+
+  .main-layout::before {
+    left: 0;
+  }
+
+  .main-content-wrapper {
+    margin-left: 0 !important;
+  }
+
+  .topbar {
+    left: 0 !important;
+    padding: 0 14px;
+  }
+
+  .topbar-hamburger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.24s ease;
+    z-index: 120;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 110;
+  }
+
+  .main-content {
+    padding: 16px;
+  }
+
+  .topbar-left {
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .system-name {
+    max-width: 32vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .breadcrumb {
+    max-width: 28vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* 手机：<=768px */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root,
+  .main-layout,
+  .main-content-wrapper,
+  .main-content {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  .main-content {
+    padding: 12px;
+    overflow-x: hidden;
+  }
+
+  .topbar {
+    height: auto;
+    min-height: var(--topbar-height);
+    padding: 8px 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+  }
+
+  .topbar-left,
+  .topbar-right {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .system-logo {
+    min-width: 0;
+  }
+
+  .system-name {
+    max-width: 64vw;
+    font-size: 15px;
+  }
+
+  .breadcrumb {
+    order: 10;
+    width: 100%;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    font-size: 12px;
+  }
+
+  .farm-menu-container {
+    width: 100%;
+  }
+
+  .global-farm-indicator {
+    width: 100%;
+    justify-content: flex-start;
+    min-height: 44px;
+  }
+
+  .farm-dropdown {
+    left: 0;
+    right: 0;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .topbar-button,
+  .user-info,
+  .dropdown-item,
+  .farm-dd-item,
+  button,
+  [role='button'] {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .topbar-button {
+    padding: 10px 12px;
+  }
+
+  .user-name {
+    max-width: 38vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 表单：标签在上 + 输入框满宽 */
+  form label,
+  .form-item label,
+  .form-row label,
+  .form-grid label {
+    display: block;
+    width: 100%;
+    margin-bottom: 6px;
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  form input,
+  form select,
+  form textarea,
+  .form-item input,
+  .form-item select,
+  .form-item textarea,
+  .form-grid input,
+  .form-grid select,
+  .form-grid textarea {
+    width: 100%;
+    min-width: 0;
+    font-size: 14px;
+  }
+
+  .form-grid,
+  .form-row {
+    grid-template-columns: 1fr !important;
+    display: grid;
+    gap: 10px;
+  }
+
+  /* 表格：手机优先横向滚动，避免挤压 */
+  .table-wrap,
+  .table-container,
+  .table-scroll,
+  .main-content table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .main-content table:not(.mobile-card-table) {
+    display: block;
+    min-width: 640px;
+  }
+
+  .main-content th,
+  .main-content td {
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  /* 表格卡片化：给指定表格使用，不影响 PC */
+  .mobile-card-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+    border-collapse: separate;
+  }
+
+  .mobile-card-table thead {
+    display: none;
+  }
+
+  .mobile-card-table tbody,
+  .mobile-card-table tr,
+  .mobile-card-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .mobile-card-table tr {
+    margin-bottom: 12px;
+    padding: 10px;
+    border: 1px solid rgba(56, 189, 248, 0.22);
+    border-radius: 10px;
+    background: rgba(15, 35, 68, 0.72);
+  }
+
+  .mobile-card-table td {
+    white-space: normal;
+    padding: 8px 0;
+    border: 0 !important;
+    overflow-wrap: anywhere;
+  }
+
+  .mobile-card-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 12px;
+    color: var(--cockpit-text-muted);
+    margin-bottom: 4px;
+  }
+
+  .mobile-card-table .td-check,
+  .mobile-card-table .th-check {
+    display: none !important;
+  }
+
+  /* 卡片内操作区：按钮自动换行，避免挤压 */
+  .mobile-card-table .row-actions,
+  .mobile-card-table .warning-actions,
+  .mobile-card-table .system-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .mobile-card-table .row-actions .mini-btn,
+  .mobile-card-table .warning-actions .btn-ghost,
+  .mobile-card-table .warning-actions .btn-danger,
+  .mobile-card-table .system-actions button,
+  .mobile-card-table .table-btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px 10px;
+    line-height: 1.2;
+  }
+
+  .mobile-card-table .tag,
+  .mobile-card-table .status-tag,
+  .mobile-card-table .badge-status,
+  .mobile-card-table .status-badge-circle {
+    display: inline-flex;
+    align-items: center;
+    min-height: 24px;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .mobile-card-table .detail-cell,
+  .mobile-card-table .detail-plain,
+  .mobile-card-table .ml-row,
+  .mobile-card-table .permission-tags {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* 分页和批量操作条在手机端换行更自然 */
+  .pagination,
+  .warning-pagination,
+  .farm-pagination,
+  .sys-pagebar,
+  .batch-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .page-controls,
+  .batch-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* 表单内并排项在手机端纵向显示 */
+  .material-field-row,
+  .coord-inputs,
+  .range-input-row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+
+  .range-separator,
+  .filter-sep {
+    display: none;
+  }
+}
+

@@ -160,7 +160,7 @@ const MonitorReport = () => {
             {(report.anomalies?.by_type || []).length === 0 ? (
               <div className="trend-line">本时段无异常记录</div>
             ) : (
-              <table className="anomaly-table">
+              <table className="anomaly-table mobile-card-table">
                 <thead>
                   <tr>
                     <th>类型</th>
@@ -170,8 +170,8 @@ const MonitorReport = () => {
                 <tbody>
                   {report.anomalies.by_type.map((r) => (
                     <tr key={r.exception_type}>
-                      <td>{r.exception_type}</td>
-                      <td>{r.cnt}</td>
+                      <td data-label="类型">{r.exception_type}</td>
+                      <td data-label="次数">{r.cnt}</td>
                     </tr>
                   ))}
                 </tbody>

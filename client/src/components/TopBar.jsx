@@ -5,7 +5,7 @@ import api from '../utils/api'
 import { GLOBAL_FARM_CHANGED_EVENT } from '../utils/globalFarm'
 import { getBreadcrumbs } from '../routes/routeConfig'
 import './TopBar.css'
-const TopBar = () => {
+const TopBar = ({ onToggleSidebar = () => {} }) => {
   const { user, logout, currentFarmId, currentFarmName, switchGlobalFarm } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -104,6 +104,15 @@ const TopBar = () => {
   return (
     <div className="topbar">
       <div className="topbar-left">
+        <button
+          type="button"
+          className="topbar-hamburger"
+          onClick={onToggleSidebar}
+          aria-label="打开导航菜单"
+          title="菜单"
+        >
+          ☰
+        </button>
         <div className="system-logo">
           <span className="logo-icon">🌾</span>
           <span className="system-name">智慧农业综合管理系统</span>

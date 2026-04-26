@@ -323,7 +323,7 @@ const FertilizeRecord = () => {
         {loading ? (
           <div className="loading">加载中...</div>
         ) : (
-          <table className="op-table">
+          <table className="op-table mobile-card-table">
             <thead>
               <tr>
                 <th>农场</th>
@@ -341,18 +341,18 @@ const FertilizeRecord = () => {
             <tbody>
               {rows.map((r) => (
                 <tr key={r.record_id}>
-                  <td>{r.farm_name || '--'}</td>
-                  <td>{r.area_name || '--'}</td>
-                  <td>{r.crop_name || '--'}</td>
-                  <td>{r.material_name || '--'}</td>
-                  <td>
+                  <td data-label="农场">{r.farm_name || '--'}</td>
+                  <td data-label="区域">{r.area_name || '--'}</td>
+                  <td data-label="作物">{r.crop_name || '--'}</td>
+                  <td data-label="农资">{r.material_name || '--'}</td>
+                  <td data-label="使用量">
                     {r.amount != null ? `${r.amount}${r.unit || ''}` : '--'}
                   </td>
-                  <td>{r.method || '--'}</td>
-                  <td>{r.operation_detail || '--'}</td>
-                  <td>{r.operation_time ? new Date(r.operation_time).toLocaleString() : '--'}</td>
-                  <td>{r.operator_name || '--'}</td>
-                  <td>
+                  <td data-label="方式">{r.method || '--'}</td>
+                  <td data-label="操作内容">{r.operation_detail || '--'}</td>
+                  <td data-label="操作时间">{r.operation_time ? new Date(r.operation_time).toLocaleString() : '--'}</td>
+                  <td data-label="操作人">{r.operator_name || '--'}</td>
+                  <td data-label="操作">
                     <div className="row-actions">
                       {canEdit ? (
                         <button type="button" className="mini-btn" onClick={() => openEdit(r)}>

@@ -154,7 +154,7 @@ const StockFlow = () => {
         {loading ? (
           <div className="loading">加载中...</div>
         ) : (
-          <table className="flow-table">
+          <table className="flow-table mobile-card-table">
             <thead>
               <tr>
                 <th>操作时间</th>
@@ -170,21 +170,21 @@ const StockFlow = () => {
             <tbody>
               {(rows || []).map((r) => (
                 <tr key={r.stock_log_id}>
-                  <td>{formatDt(r.created_at)}</td>
-                  <td>{r.material_name}</td>
-                  <td>{r.farm_name}</td>
-                  <td>
+                  <td data-label="操作时间">{formatDt(r.created_at)}</td>
+                  <td data-label="农资名称">{r.material_name}</td>
+                  <td data-label="农场">{r.farm_name}</td>
+                  <td data-label="操作类型">
                     <span className={`tag-flow ${r.change_type === 'IN' ? 'tag-flow-in' : 'tag-flow-out'}`}>
                       {r.change_type === 'IN' ? '入库' : '出库'}
                     </span>
                   </td>
-                  <td>{r.flow_source_label || '-'}</td>
-                  <td className={r.change_type === 'IN' ? 'qty-in' : 'qty-out'}>
+                  <td data-label="操作来源">{r.flow_source_label || '-'}</td>
+                  <td data-label="数量" className={r.change_type === 'IN' ? 'qty-in' : 'qty-out'}>
                     {r.change_type === 'IN' ? '+' : '-'}
                     {r.delta_qty}
                   </td>
-                  <td>{r.operator_name || '-'}</td>
-                  <td>{r.reason || r.usage_purpose || '-'}</td>
+                  <td data-label="操作人">{r.operator_name || '-'}</td>
+                  <td data-label="备注">{r.reason || r.usage_purpose || '-'}</td>
                 </tr>
               ))}
             </tbody>
