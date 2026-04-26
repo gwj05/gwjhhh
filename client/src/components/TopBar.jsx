@@ -114,62 +114,66 @@ const TopBar = ({ onToggleSidebar = () => {}, mobile = false }) => {
           >
             ☰
           </button>
-          <div className="system-logo">
-            <span className="logo-icon">🌾</span>
-            <span className="system-name">智慧农业管理系统</span>
-          </div>
-          <div className="user-menu-container">
-            <div className="user-info" onClick={() => setShowUserMenu(!showUserMenu)}>
-              <span className="user-avatar">{user.real_name.charAt(0)}</span>
-            </div>
-            {showUserMenu && (
-              <div className="user-dropdown">
-                <div className="dropdown-item" onClick={() => handleUserMenuClick('profile')}>个人信息</div>
-                <div className="dropdown-item" onClick={() => handleUserMenuClick('password')}>修改密码</div>
-                <div className="dropdown-divider"></div>
-                <div className="dropdown-item logout" onClick={() => handleUserMenuClick('logout')}>退出登录</div>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className={`farm-menu-container ${user.role_id === 1 ? 'is-admin' : ''}`}>
           <button
             type="button"
-            className={`global-farm-indicator ${user.role_id === 1 ? 'is-clickable' : ''}`}
-            onClick={openFarmMenu}
-            title={user.role_id === 1 ? '点击切换全局农场' : '当前农场'}
+            className="system-logo system-home-link"
+            onClick={() => navigate('/homepage')}
+            title="返回系统首页"
           >
-            <span className="farm-pin" aria-hidden="true">📍</span>
-            <span className="farm-label">当前农场</span>
-            <strong className="farm-name">{farmDisplayName}</strong>
-            {user.role_id === 1 ? <span className={`farm-arrow ${showFarmMenu ? 'expanded' : ''}`}>▼</span> : null}
+            <span className="logo-icon">🌾</span>
+            <span className="system-name">智慧农业管理系统</span>
           </button>
-          {user.role_id === 1 && showFarmMenu ? (
-            <div className="farm-dropdown">
-              <button type="button" className="farm-dd-item" onClick={() => onPickFarm('', '')}>
-                <span className="farm-dd-name">全部农场</span>
-                <span className="farm-dd-meta">查看所有农场数据</span>
+          <div className="mobile-topbar-actions">
+            <div className={`farm-menu-container mobile-farm-menu-container ${user.role_id === 1 ? 'is-admin' : ''}`}>
+              <button
+                type="button"
+                className={`mobile-farm-switch ${user.role_id === 1 ? 'is-clickable' : ''}`}
+                onClick={openFarmMenu}
+                title={user.role_id === 1 ? `切换农场：${farmDisplayName}` : `当前农场：${farmDisplayName}`}
+              >
+                {user.role_id === 1 ? '切换农场' : '当前农场'}
               </button>
-              <div className="farm-dd-divider" />
-              {farmLoading ? (
-                <div className="farm-dd-loading">加载中...</div>
-              ) : farmOptions.length === 0 ? (
-                <div className="farm-dd-empty">暂无可选农场</div>
-              ) : (
-                farmOptions.map((f) => (
-                  <button
-                    key={f.farm_id}
-                    type="button"
-                    className={`farm-dd-item ${String(currentFarmId) === String(f.farm_id) ? 'active' : ''}`}
-                    onClick={() => onPickFarm(f.farm_id, f.farm_name)}
-                  >
-                    <span className="farm-dd-name">{f.farm_name}</span>
-                    <span className="farm-dd-meta">{f.address || `农场#${f.farm_id}`}</span>
+              {user.role_id === 1 && showFarmMenu ? (
+                <div className="farm-dropdown">
+                  <button type="button" className="farm-dd-item" onClick={() => onPickFarm('', '')}>
+                    <span className="farm-dd-name">全部农场</span>
+                    <span className="farm-dd-meta">查看所有农场数据</span>
                   </button>
-                ))
+                  <div className="farm-dd-divider" />
+                  {farmLoading ? (
+                    <div className="farm-dd-loading">加载中...</div>
+                  ) : farmOptions.length === 0 ? (
+                    <div className="farm-dd-empty">暂无可选农场</div>
+                  ) : (
+                    farmOptions.map((f) => (
+                      <button
+                        key={f.farm_id}
+                        type="button"
+                        className={`farm-dd-item ${String(currentFarmId) === String(f.farm_id) ? 'active' : ''}`}
+                        onClick={() => onPickFarm(f.farm_id, f.farm_name)}
+                      >
+                        <span className="farm-dd-name">{f.farm_name}</span>
+                        <span className="farm-dd-meta">{f.address || `农场#${f.farm_id}`}</span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              ) : null}
+            </div>
+            <div className="user-menu-container mobile-user-menu">
+              <div className="user-info" onClick={() => setShowUserMenu(!showUserMenu)}>
+                <span className="user-avatar">{user.real_name.charAt(0)}</span>
+              </div>
+              {showUserMenu && (
+                <div className="user-dropdown">
+                  <div className="dropdown-item" onClick={() => handleUserMenuClick('profile')}>个人信息</div>
+                  <div className="dropdown-item" onClick={() => handleUserMenuClick('password')}>修改密码</div>
+                  <div className="dropdown-divider"></div>
+                  <div className="dropdown-item logout" onClick={() => handleUserMenuClick('logout')}>退出登录</div>
+                </div>
               )}
             </div>
-          ) : null}
+          </div>
         </div>
         {farmToast ? <div className="farm-switch-toast">{farmToast}</div> : null}
       </div>
@@ -188,10 +192,15 @@ const TopBar = ({ onToggleSidebar = () => {}, mobile = false }) => {
         >
           ☰
         </button>
-        <div className="system-logo">
+        <button
+          type="button"
+          className="system-logo system-home-link"
+          onClick={() => navigate('/homepage')}
+          title="返回系统首页"
+        >
           <span className="logo-icon">🌾</span>
-          <span className="system-name">智慧农业综合管理系统</span>
-        </div>
+          <span className="system-name">智慧农业管理系统</span>
+        </button>
         <div className="breadcrumb">
           {breadcrumbs.map((crumb, index) => (
             <span key={index}>

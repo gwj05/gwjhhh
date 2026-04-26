@@ -35,7 +35,6 @@ const MaterialPurchase = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
-  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [selectedIds, setSelectedIds] = useState(() => new Set())
   const [batching, setBatching] = useState(false)
@@ -125,7 +124,6 @@ const MaterialPurchase = () => {
 
   useEffect(() => {
     if (!isMobile) {
-      setShowMobileSearch(false)
       setShowMobileFilters(false)
     }
   }, [isMobile])
@@ -177,6 +175,7 @@ const MaterialPurchase = () => {
   }, [reloadMaterialOptions])
 
   const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize])
+  const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : '--')
 
   const onMaterialChange = (materialId) => {
     const m = materialOptions.find(x => String(x.material_id) === String(materialId))
@@ -516,7 +515,7 @@ const MaterialPurchase = () => {
             <button
               type="button"
               className="mobile-icon-btn"
-              onClick={() => setShowMobileSearch((v) => !v)}
+              onClick={() => setShowMobileFilters((v) => !v)}
               title="搜索"
               aria-label="搜索"
             >
@@ -531,18 +530,6 @@ const MaterialPurchase = () => {
             >
               ⚙
             </button>
-            {showMobileSearch ? (
-              <div className="mobile-inline-search">
-                <input
-                  value={filters.material_name}
-                  onChange={e => setFilters(p => ({ ...p, material_name: e.target.value }))}
-                  placeholder="输入农资名称"
-                />
-                <button className="outline-btn mobile-search-confirm" onClick={() => setPage(1)}>
-                  查询
-                </button>
-              </div>
-            ) : null}
           </div>
         ) : null}
         <div className={`filter-row ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
@@ -606,7 +593,41 @@ const MaterialPurchase = () => {
             </div>
           </div>
         ) : null}
-        {loading ? <div className="loading">加载中...</div> : (
+        {loading ? <div className="loading">加载中...</div> : isMobile ? (
+          <div className="mobile-record-list">
+            {(rows || []).map((r) => (
+              <article key={r.purchase_id} className="mobile-record-card">
+                <div className="mobile-record-head">
+                  <div className="mobile-record-title">{r.material_name || '--'}</div>
+                  <span className={`tag ${statusTag(r.purchase_status)}`}>{r.purchase_status}</span>
+                </div>
+
+                <div className="mobile-record-grid">
+                  <div><span className="k">采购单号</span><span className="v">{r.purchase_no}</span></div>
+                  <div><span className="k">所属农场</span><span className="v">{r.farm_name || '--'}</span></div>
+                  <div><span className="k">数量</span><span className="v">{r.purchase_qty}</span></div>
+                  <div><span className="k">单价</span><span className="v">{r.unit_price}</span></div>
+                  <div><span className="k">总金额</span><span className="v">{r.total_amount}</span></div>
+                  <div><span className="k">操作人</span><span className="v">{r.operator_name || '--'}</span></div>
+                  <div><span className="k">采购时间</span><span className="v">{formatDateTime(r.purchase_time)}</span></div>
+                </div>
+
+                <div className="mobile-record-actions">
+                  {canInbound && r.purchase_status === '待入库' ? (
+                    <button className="mini-btn" onClick={() => handleInbound(r)}>入库</button>
+                  ) : null}
+                  {canCreate && r.purchase_status === '待入库' ? (
+                    <button className="mini-btn" onClick={() => openEdit(r)}>编辑</button>
+                  ) : null}
+                  {canCreate && r.purchase_status === '待入库' ? (
+                    <button className="mini-btn" onClick={() => handleCancel(r)}>取消</button>
+                  ) : null}
+                  {canDelete ? <button className="mini-btn danger" onClick={() => handleDelete(r)}>删除</button> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
           <table className="purchase-table mobile-card-table">
             <thead>
               <tr>

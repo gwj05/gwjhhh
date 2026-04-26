@@ -122,15 +122,24 @@ const OverviewPage = () => {
               <h3>🦟 病虫害风险预警（规则）</h3>
             </header>
             <div className="overview-card-body">
-              <div className="overview-kpi-row">
-                <div className="mini-kpi"><span>风险指数</span><strong>{pest?.risk_index ?? 0}</strong></div>
-                <div className="mini-kpi"><span>风险等级</span><strong className={pest?.risk_level === '高' ? 'kpi-danger' : ''}>{pest?.risk_level || '低'}</strong></div>
+              <div className="overview-kv-card">
+                <div className="overview-kv-row">
+                  <span className="k">风险指数</span>
+                  <strong>{pest?.risk_index ?? 0}</strong>
+                </div>
+                <div className="overview-kv-row">
+                  <span className="k">风险等级</span>
+                  <strong className={pest?.risk_level === '高' ? 'kpi-danger' : ''}>{pest?.risk_level || '低'}</strong>
+                </div>
+              </div>
+              <div className="pest-env-row">
+                <span className="pest-env-item">温度 {pest?.latest?.temperature ?? '—'}℃</span>
+                <span className="pest-env-item">湿度 {pest?.latest?.humidity ?? '—'}%</span>
+                <span className="pest-env-item">降雨 {pest?.latest?.rainfall ?? '—'}mm</span>
+                <span className="pest-env-item">置信度 {pest?.confidence || '低'}</span>
               </div>
               <div className="overview-note">
                 防治窗口：{pest?.suggest_window || '暂无建议'}；建议：{pest?.suggest_action || '请补充监测数据后评估'}
-              </div>
-              <div className="overview-empty">
-                温度 {pest?.latest?.temperature ?? '—'}℃ · 湿度 {pest?.latest?.humidity ?? '—'}% · 降雨 {pest?.latest?.rainfall ?? '—'}mm · 置信度 {pest?.confidence || '低'}
               </div>
               {pest?.explain ? (
                 <details className="overview-explain">

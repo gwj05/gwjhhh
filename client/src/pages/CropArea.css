@@ -198,3 +198,34 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+@media (max-width: 768px) {
+  .crop-area-page {
+    padding: 10px;
+  }
+
+  .crop-area-page .page-header {
+    margin-bottom: 10px;
+  }
+
+  .crop-area-page .filter-card {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
+  }
+
+  .crop-area-page .filter-card input,
+  .crop-area-page .filter-card select,
+  .crop-area-page .filter-card button {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .crop-area-page .table-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .crop-area-page table {
+    min-width: 640px;
+  }
+}

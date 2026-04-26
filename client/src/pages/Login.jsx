@@ -24,7 +24,7 @@ const Login = () => {
       })
 
       login(response.data.token, response.data.user)
-      navigate('/home', { replace: true })
+      navigate('/homepage', { replace: true })
     } catch (err) {
       setError(err.response?.data?.message || '登录失败，请检查用户名和密码')
     } finally {

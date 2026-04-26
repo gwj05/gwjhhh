@@ -12,6 +12,11 @@ const FarmManager = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [selectedIds, setSelectedIds] = useState([])
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileFiltersList, setShowMobileFiltersList] = useState(false)
+  const [showMobileFiltersLogs, setShowMobileFiltersLogs] = useState(false)
+  const [expandedPrincipalIds, setExpandedPrincipalIds] = useState(() => new Set())
+  const [expandedLogIds, setExpandedLogIds] = useState(() => new Set())
   
   // 筛选条件
   const [filters, setFilters] = useState({
@@ -100,6 +105,12 @@ const FarmManager = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, filters, activeTab, logPage, logFilters])
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   // 获取可绑定的负责人列表
   const fetchAvailablePrincipals = async (farmId) => {
@@ -329,6 +340,12 @@ const FarmManager = () => {
 
   const pageCount = Math.ceil(total / pageSize)
   const logPageCount = Math.ceil(logTotal / pageSize)
+  const formatMobileTime = (value) => {
+    if (!value) return '-'
+    const d = new Date(value)
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
 
   return (
     <div className="farm-manager-page">
@@ -366,8 +383,22 @@ const FarmManager = () => {
               </>
             )}
           </div>
+          {isMobile ? (
+            <div className="mobile-toolbar-actions">
+              <button
+                type="button"
+                className="mobile-icon-btn"
+                onClick={() => setShowMobileFiltersList((v) => !v)}
+                title="筛选"
+                aria-label="筛选"
+              >
+                ⚙
+              </button>
+            </div>
+          ) : null}
+          {isMobile && showMobileFiltersList ? <div className="mobile-sheet-backdrop" onClick={() => setShowMobileFiltersList(false)} /> : null}
 
-          <div className="farm-filter-panel">
+          <div className={`farm-filter-panel ${isMobile ? (showMobileFiltersList ? 'mobile-filter-sheet' : 'mobile-collapsed') : ''}`}>
             <div className="filter-row">
               <div className="filter-item">
                 <label>负责人姓名：</label>
@@ -421,6 +452,11 @@ const FarmManager = () => {
                 >
                   重置
                 </button>
+                {isMobile ? (
+                  <button className="outline-btn" onClick={() => setShowMobileFiltersList(false)}>
+                    关闭
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -528,6 +564,64 @@ const FarmManager = () => {
                     )}
                   </tbody>
                 </table>
+                {isMobile && !loading && principals.length > 0 ? (
+                  <div className="mobile-record-list">
+                    {principals.map((principal) => (
+                      <article key={`m-${principal.binding_id}`} className="mobile-record-card">
+                        <div className="mobile-record-head">
+                          <label className="mobile-select-check">
+                            <input
+                              type="checkbox"
+                              checked={selectedIds.includes(principal.binding_id)}
+                              onChange={e => {
+                                if (e.target.checked) {
+                                  setSelectedIds([...selectedIds, principal.binding_id])
+                                } else {
+                                  setSelectedIds(selectedIds.filter(id => id !== principal.binding_id))
+                                }
+                              }}
+                            />
+                          </label>
+                          <div className="mobile-record-title">{principal.real_name}</div>
+                          {getPrincipalTypeTag(principal.principal_type)}
+                        </div>
+                        <div className="mobile-record-grid">
+                          <div><span className="k">手机号</span><span className="v">{principal.phone}</span></div>
+                          <div><span className="k">角色</span><span className="v">{principal.role_name}</span></div>
+                          {expandedPrincipalIds.has(principal.binding_id) ? (
+                            <>
+                              <div><span className="k">权限范围</span><span className="v">{principal.permission_scope === 'single' ? '单个农场' : '多个农场'}</span></div>
+                              <div><span className="k">绑定时间</span><span className="v">{formatMobileTime(principal.bind_time)}</span></div>
+                              <div className="is-full"><span className="k">权限模块</span><span className="v">{(principal.permission.view_modules || []).join('、') || '暂无权限'}</span></div>
+                            </>
+                          ) : null}
+                        </div>
+                        <div className="mobile-record-actions">
+                          <button className="mini-btn" onClick={() => handleOpenPermissionForm(principal)}>编辑权限</button>
+                          {(isAdmin || principal.principal_type === '主') ? (
+                            <button
+                              className="mini-btn danger"
+                              onClick={() => handleUnbind([principal.binding_id], principal.principal_type === '主')}
+                            >
+                              解绑
+                            </button>
+                          ) : null}
+                          <button
+                            className="mini-btn"
+                            onClick={() => setExpandedPrincipalIds((prev) => {
+                              const next = new Set(prev)
+                              if (next.has(principal.binding_id)) next.delete(principal.binding_id)
+                              else next.add(principal.binding_id)
+                              return next
+                            })}
+                          >
+                            {expandedPrincipalIds.has(principal.binding_id) ? '收起' : '更多'}
+                          </button>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : null}
               </div>
 
               <div className="farm-pagination">
@@ -576,8 +670,22 @@ const FarmManager = () => {
               导出Excel
             </button>
           </div>
+          {isMobile ? (
+            <div className="mobile-toolbar-actions">
+              <button
+                type="button"
+                className="mobile-icon-btn"
+                onClick={() => setShowMobileFiltersLogs((v) => !v)}
+                title="筛选"
+                aria-label="筛选"
+              >
+                ⚙
+              </button>
+            </div>
+          ) : null}
+          {isMobile && showMobileFiltersLogs ? <div className="mobile-sheet-backdrop" onClick={() => setShowMobileFiltersLogs(false)} /> : null}
 
-          <div className="farm-filter-panel">
+          <div className={`farm-filter-panel ${isMobile ? (showMobileFiltersLogs ? 'mobile-filter-sheet' : 'mobile-collapsed') : ''}`}>
             <div className="filter-row">
               <div className="filter-item">
                 <label>操作类型：</label>
@@ -629,6 +737,11 @@ const FarmManager = () => {
                 >
                   重置
                 </button>
+                {isMobile ? (
+                  <button className="outline-btn" onClick={() => setShowMobileFiltersLogs(false)}>
+                    关闭
+                  </button>
+                ) : null}
               </div>
             </div>
           </div>
@@ -678,6 +791,41 @@ const FarmManager = () => {
                 )}
               </tbody>
             </table>
+            {isMobile && !loading && logs.length > 0 ? (
+              <div className="mobile-record-list">
+                {logs.map((log) => (
+                  <article key={`m-log-${log.log_id}`} className="mobile-record-card">
+                    <div className="mobile-record-head">
+                      <div className="mobile-record-title">{log.real_name || '-'}</div>
+                      <span className={`log-type log-type-${log.operation_type}`}>{log.operation_type}</span>
+                    </div>
+                    <div className="mobile-record-grid">
+                      <div><span className="k">农场</span><span className="v">{log.farm_name || '-'}</span></div>
+                      <div><span className="k">操作人</span><span className="v">{log.operator_name || '-'}</span></div>
+                      {expandedLogIds.has(log.log_id) ? (
+                        <>
+                          <div className="is-full"><span className="k">操作内容</span><span className="v">{log.operation_content || '-'}</span></div>
+                          <div><span className="k">操作时间</span><span className="v">{formatMobileTime(log.operation_time)}</span></div>
+                        </>
+                      ) : null}
+                    </div>
+                    <div className="mobile-record-actions">
+                      <button
+                        className="mini-btn"
+                        onClick={() => setExpandedLogIds((prev) => {
+                          const next = new Set(prev)
+                          if (next.has(log.log_id)) next.delete(log.log_id)
+                          else next.add(log.log_id)
+                          return next
+                        })}
+                      >
+                        {expandedLogIds.has(log.log_id) ? '收起' : '更多'}
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           <div className="farm-pagination">

@@ -36,6 +36,9 @@ const CropList = () => {
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [toast, setToast] = useState(null)
   const [showBatchFarmModal, setShowBatchFarmModal] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [expandedIds, setExpandedIds] = useState(() => new Set())
   const hoverTimeoutRef = useRef(null)
   const overviewCardRef = useRef(null)
 
@@ -86,6 +89,12 @@ const CropList = () => {
   useEffect(() => {
     fetchCrops(false)
   }, [page, pageSize, sortField, sortOrder])
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   // 显示提示
   const showToast = (message, type = 'success') => {
@@ -171,6 +180,10 @@ const CropList = () => {
       if (next > pageCount) next = pageCount
       return next
     })
+  }
+  const formatMobileDate = (value) => {
+    if (!value) return '--'
+    return value.split('T')[0].slice(5)
   }
 
   // 新增/编辑表单
@@ -417,7 +430,31 @@ const CropList = () => {
         </div>
       )}
 
-      <div className="crop-filter-panel">
+      {isMobile ? (
+        <div className="mobile-toolbar-actions">
+          <button
+            type="button"
+            className="mobile-icon-btn"
+            onClick={() => setShowMobileFilters((v) => !v)}
+            title="搜索"
+            aria-label="搜索"
+          >
+            🔍
+          </button>
+          <button
+            type="button"
+            className="mobile-icon-btn"
+            onClick={() => setShowMobileFilters((v) => !v)}
+            title="筛选"
+            aria-label="筛选"
+          >
+            ⚙
+          </button>
+        </div>
+      ) : null}
+      {isMobile && showMobileFilters ? <div className="mobile-sheet-backdrop" onClick={() => setShowMobileFilters(false)} /> : null}
+
+      <div className={`crop-filter-panel ${isMobile ? (showMobileFilters ? 'mobile-filter-sheet' : 'mobile-collapsed') : ''}`}>
         <div className="filter-row">
           <div className="filter-item">
             <label>作物名称：</label>
@@ -506,6 +543,11 @@ const CropList = () => {
             <button className="outline-btn" onClick={handleReset}>
               重置
             </button>
+            {isMobile ? (
+              <button className="outline-btn" onClick={() => setShowMobileFilters(false)}>
+                关闭
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -742,6 +784,55 @@ const CropList = () => {
             </tbody>
           </table>
         )}
+        {isMobile && !loading && crops.length > 0 ? (
+          <div className="mobile-record-list">
+            {crops.map((crop) => (
+              <article key={`m-${crop.crop_id}`} className="mobile-record-card">
+                <div className="mobile-record-head">
+                  <label className="mobile-select-check">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(crop.crop_id)}
+                      onChange={() => handleSelectOne(crop.crop_id)}
+                    />
+                  </label>
+                  <div className="mobile-record-title">{crop.crop_name}</div>
+                  {statusTag(crop.status)}
+                </div>
+                <div className="mobile-record-grid">
+                  <div><span className="k">类型</span><span className="v">{crop.crop_category || '--'}</span></div>
+                  <div><span className="k">农场</span><span className="v">{crop.farm_name || '--'}</span></div>
+                  <div><span className="k">区域</span><span className="v">{crop.plant_area || '--'}</span></div>
+                  {expandedIds.has(crop.crop_id) ? (
+                    <>
+                      <div><span className="k">种植时间</span><span className="v">{formatMobileDate(crop.sow_time)}</span></div>
+                      <div><span className="k">生长周期</span><span className="v">{crop.growth_cycle ? `${crop.growth_cycle}天` : '--'}</span></div>
+                      <div className="is-full"><span className="k">湿度范围</span><span className="v">{crop.suitable_humidity_min && crop.suitable_humidity_max ? `${crop.suitable_humidity_min}-${crop.suitable_humidity_max}%` : '--'}</span></div>
+                      <div className="is-full"><span className="k">pH范围</span><span className="v">{crop.suitable_ph_min && crop.suitable_ph_max ? `${crop.suitable_ph_min}-${crop.suitable_ph_max}` : '--'}</span></div>
+                    </>
+                  ) : null}
+                </div>
+                <div className="mobile-record-actions">
+                  <button className="mini-btn" onClick={() => handleEdit(crop)}>编辑</button>
+                  {(isAdmin || user?.farm_id === crop.farm_id) ? (
+                    <button className="mini-btn danger" onClick={() => handleDelete(crop)}>删除</button>
+                  ) : null}
+                  <button
+                    className="mini-btn"
+                    onClick={() => setExpandedIds((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(crop.crop_id)) next.delete(crop.crop_id)
+                      else next.add(crop.crop_id)
+                      return next
+                    })}
+                  >
+                    {expandedIds.has(crop.crop_id) ? '收起' : '更多'}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
 
         {total > 0 && (
           <div className="crop-pagination">

@@ -24,7 +24,7 @@ function getStockTag(state) {
 }
 
 const MaterialList = () => {
-  const { user } = useAuth()
+  const { user, currentFarmId } = useAuth()
   const navigate = useNavigate()
   const isAdmin = user?.role_id === 1
   const isOperator = user?.role_id === 2
@@ -44,7 +44,6 @@ const MaterialList = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
-  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   const toast = useToast()
@@ -83,6 +82,13 @@ const MaterialList = () => {
     fetchMaterials()
   }, [fetchMaterials])
 
+  // 全局农场切换后，管理员列表页应立即跟随切换并刷新数据
+  useEffect(() => {
+    if (!isAdmin) return
+    setFarmFilterId(currentFarmId ? String(currentFarmId) : '')
+    setPage(1)
+  }, [isAdmin, currentFarmId])
+
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', onResize)
@@ -91,7 +97,6 @@ const MaterialList = () => {
 
   useEffect(() => {
     if (!isMobile) {
-      setShowMobileSearch(false)
       setShowMobileFilters(false)
     }
   }, [isMobile])
@@ -381,6 +386,7 @@ const MaterialList = () => {
   }, [isAdmin])
 
   const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize])
+  const formatDateTime = (value) => (value ? new Date(value).toLocaleString() : '--')
 
   return (
     <div className="material-list-page">
@@ -402,7 +408,7 @@ const MaterialList = () => {
             <button
               type="button"
               className="mobile-icon-btn"
-              onClick={() => setShowMobileSearch((v) => !v)}
+              onClick={() => setShowMobileFilters((v) => !v)}
               title="搜索"
               aria-label="搜索"
             >
@@ -417,18 +423,6 @@ const MaterialList = () => {
             >
               ⚙
             </button>
-            {showMobileSearch ? (
-              <div className="mobile-inline-search">
-                <input
-                  value={keyword}
-                  onChange={(e) => setKeyword(e.target.value)}
-                  placeholder="输入农资名称"
-                />
-                <button className="outline-btn mobile-search-confirm" onClick={() => setPage(1)}>
-                  查询
-                </button>
-              </div>
-            ) : null}
           </div>
         ) : null}
 
@@ -475,7 +469,7 @@ const MaterialList = () => {
             <button className="outline-btn" onClick={() => { setPage(1) }}>
               搜索
             </button>
-            <button className="outline-btn" onClick={() => { setKeyword(''); setType(''); setStockState(''); setFarmFilterId(''); setPage(1) }}>
+            <button className="outline-btn" onClick={() => { setKeyword(''); setType(''); setStockState(''); setFarmFilterId(isAdmin ? (currentFarmId ? String(currentFarmId) : '') : ''); setPage(1) }}>
               重置
             </button>
           </div>
@@ -487,6 +481,50 @@ const MaterialList = () => {
           <div className="loading">加载中...</div>
         ) : rows.length === 0 ? (
           <div className="empty-state-panel">暂无数据</div>
+        ) : isMobile ? (
+          <div className="mobile-record-list">
+            {rows.map((r) => {
+              const tag = getStockTag(r.stock_state)
+              const rowDanger = r.stock_state === '缺货'
+              return (
+                <article key={r.material_id} className={`mobile-record-card ${rowDanger ? 'is-danger' : ''}`}>
+                  <div className="mobile-record-head">
+                    <div className="mobile-record-title">{r.material_name}</div>
+                    {(r.stock_state === '库存不足' || r.stock_state === '缺货') ? (
+                      <button
+                        className={`tag ${tag.className} tag-link`}
+                        onClick={() => navigate(`/material/warning?status=${r.stock_state === '缺货' ? 'out' : 'low'}`)}
+                        title="点击查看库存预警"
+                      >
+                        {tag.text}
+                      </button>
+                    ) : (
+                      <span className={`tag ${tag.className}`}>{tag.text}</span>
+                    )}
+                  </div>
+
+                  <div className="mobile-record-grid">
+                    <div><span className="k">农场</span><span className="v">{r.farm_name || '--'}</span></div>
+                    <div><span className="k">类型</span><span className="v">{r.material_type || '--'}</span></div>
+                    <div><span className="k">品牌</span><span className="v">{r.brand || '--'}</span></div>
+                    <div><span className="k">规格</span><span className="v">{r.spec || '--'}</span></div>
+                    <div><span className="k">库存</span><span className="v">{r.stock_num}</span></div>
+                    <div><span className="k">安全库存</span><span className="v">{r.safety_stock_num}</span></div>
+                    <div><span className="k">单价</span><span className="v">{r.price != null ? r.price : '--'}</span></div>
+                    <div><span className="k">创建时间</span><span className="v">{formatDateTime(r.created_at)}</span></div>
+                  </div>
+
+                  <div className="mobile-record-actions">
+                    <button className="mini-btn" onClick={() => openDetail(r)}>详情</button>
+                    {canCreateEdit ? <button className="mini-btn" onClick={() => openEdit(r)}>编辑</button> : null}
+                    {canDelete ? <button className="mini-btn danger" onClick={() => deleteMaterial(r)}>删除</button> : null}
+                    {canUpdateStock ? <button className="mini-btn" onClick={() => openStockModal(r, 'IN')}>入库</button> : null}
+                    {canUpdateStock ? <button className="mini-btn" onClick={() => openStockModal(r, 'OUT')}>出库</button> : null}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
         ) : (
           <table className="material-table mobile-card-table">
             <thead>

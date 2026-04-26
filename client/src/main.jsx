@@ -8,6 +8,7 @@ import './ui/ui.css'
 import './theme/cockpit-pages.css'
 import './theme/cockpit-farm-crop.css'
 import './theme/responsive.css'
+import './theme/mobile-rebuild.css'
 import { Provider } from 'react-redux'
 import { store } from './store/store'
 

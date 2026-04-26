@@ -17,10 +17,10 @@ const MobileTabBar = ({ onOpenMenu = () => {} }) => {
       ? { key: 'farm', label: '农场', icon: '🏢', path: '/farm/list' }
       : { key: 'crop', label: '作物', icon: '🌾', path: '/crop/list' }
     return [
-      { key: 'home', label: '首页', icon: '🏠', path: '/home' },
-      { key: 'board', label: '看板', icon: '📊', path: '/homepage' },
+      { key: 'board', label: '首页', icon: '📊', path: '/homepage' },
       smartTab,
-      manageTab
+      manageTab,
+      { key: 'material', label: '农资', icon: '📦', path: '/material/list' }
     ]
   }, [user])
 

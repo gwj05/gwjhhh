@@ -5,6 +5,7 @@
 
 .filter-card, .table-card { background: #fff; border: 1px solid #ebeef5; border-radius: 10px; padding: 12px; }
 .filter-card { margin-bottom: 12px; }
+.filter-toggle-card { display: none; }
 .filter-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; }
 .filter-item { min-width: 160px; flex: 1 1 160px; }
 .filter-item label { display: block; margin-bottom: 6px; color: #606266; font-size: 13px; font-weight: 600; }
@@ -34,3 +35,14 @@
 
 .toast { position: fixed; right: 24px; top: 72px; background: #fff; color: #303133; padding: 10px 14px; border-radius: 10px; border: 1px solid #e4e7ed; box-shadow: 0 6px 18px rgba(0,0,0,0.12); z-index: 2000; font-size: 13px; min-width: 220px; max-width: 420px; }
 .toast.error { border-color: #fde2e2; background: #fef0f0; color: #f56c6c; }
+
+@media (max-width: 768px) {
+  .filter-toggle-card {
+    display: block;
+    margin-bottom: 8px;
+    background: #fff;
+    border: 1px solid #ebeef5;
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+}

@@ -56,7 +56,7 @@ export default class ErrorBoundary extends React.Component {
             </button>
             <button
               type="button"
-              onClick={() => (window.location.href = '/home')}
+              onClick={() => (window.location.href = '/homepage')}
               style={{
                 padding: '8px 14px',
                 borderRadius: 10,

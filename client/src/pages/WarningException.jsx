@@ -46,7 +46,6 @@ const WarningException = () => {
   const [exceptionType, setExceptionType] = useState('')
   const [sourceType, setSourceType] = useState('')
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
-  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   const [page, setPage] = useState(1)
@@ -115,7 +114,6 @@ const WarningException = () => {
 
   useEffect(() => {
     if (!isMobile) {
-      setShowMobileSearch(false)
       setShowMobileFilters(false)
     }
   }, [isMobile])
@@ -224,7 +222,7 @@ const WarningException = () => {
             <button
               type="button"
               className="mobile-icon-btn"
-              onClick={() => setShowMobileSearch((v) => !v)}
+              onClick={() => setShowMobileFilters((v) => !v)}
               title="搜索"
               aria-label="搜索"
             >
@@ -239,18 +237,6 @@ const WarningException = () => {
             >
               ⚙
             </button>
-            {showMobileSearch ? (
-              <div className="mobile-inline-search">
-                <input
-                  value={exceptionType}
-                  onChange={(e) => { setExceptionType(e.target.value); setPage(1) }}
-                  placeholder="输入异常类型关键词"
-                />
-                <button className="outline-btn mobile-search-confirm" onClick={() => setPage(1)}>
-                  查询
-                </button>
-              </div>
-            ) : null}
           </div>
         ) : null}
         <div className={isMobile && !showMobileFilters ? 'mobile-collapsed' : ''} style={{ display: 'contents' }}>
@@ -382,6 +368,40 @@ const WarningException = () => {
             </tbody>
           </table>
         )}
+        {isMobile && !loading && rows.length > 0 ? (
+          <div className="mobile-record-list">
+            {rows.map((r) => (
+              <article key={`m-${r.exception_id}`} className="mobile-record-card">
+                <div className="mobile-record-head">
+                  <div className="mobile-record-title">
+                    {(String(r.source_type || '') === 'ml' || r.exception_type === '预测预警') ? '预测预警' : r.exception_type}
+                  </div>
+                  <span className={`badge-status ${r.handle_status === '未处理' ? 'pending' : 'done'}`}>{r.handle_status}</span>
+                </div>
+                <div className="mobile-record-grid">
+                  <div><span className="k">时间</span><span className="v">{r.exception_time ? new Date(r.exception_time).toLocaleString() : '—'}</span></div>
+                  <div><span className="k">来源</span><span className="v">{SOURCE_LABEL[r.source_type] || r.source_type || '手动'}</span></div>
+                  <div><span className="k">等级</span><span className="v">{LEVEL_LABEL[r.warning_level] || r.warning_level}</span></div>
+                  <div><span className="k">农场/区域</span><span className="v">{r.farm_name} · {r.plant_area || '—'}</span></div>
+                  <div><span className="k">作物</span><span className="v">{r.crop_name || '—'}</span></div>
+                  <div><span className="k">设备</span><span className="v">{r.device_name || '—'}</span></div>
+                  <div><span className="k">详情</span><span className="v">{r.exception_detail || '—'}</span></div>
+                </div>
+                <div className="mobile-record-actions">
+                  <select
+                    value={r.handle_status}
+                    onChange={(e) => updateStatus(r.exception_id, e.target.value)}
+                    style={{ minWidth: 98, padding: '6px 8px', borderRadius: 8, border: '1px solid #dcdfe6' }}
+                  >
+                    <option value="未处理">未处理</option>
+                    <option value="已处理">已处理</option>
+                    {!isWorker ? <option value="已忽略">已忽略</option> : null}
+                  </select>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="warning-pagination">

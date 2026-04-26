@@ -14,6 +14,9 @@ const WarningPush = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [expandedIds, setExpandedIds] = useState(() => new Set())
   const [toast, setToast] = useState(null)
   const showToast = (message, kind = 'error') => {
     setToast({ message, kind })
@@ -57,7 +60,19 @@ const WarningPush = () => {
     loadPushes()
   }, [loadPushes])
 
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const formatMobileTime = (value) => {
+    if (!value) return '—'
+    const d = new Date(value)
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
 
   return (
     <div className="warning-module-page">
@@ -68,7 +83,20 @@ const WarningPush = () => {
         </p>
       </div>
 
-      <div className="warning-toolbar">
+      <div className={`warning-toolbar ${isMobile ? 'mobile-collapsed' : ''}`}>
+        {isMobile ? (
+          <div className="mobile-toolbar-actions">
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileFilters((v) => !v)}
+              title="筛选"
+              aria-label="筛选"
+            >
+              ⚙
+            </button>
+          </div>
+        ) : null}
         {isAdmin ? (
           <div className="field">
             <label>按农场筛选</label>
@@ -86,6 +114,30 @@ const WarningPush = () => {
           </button>
         </div>
       </div>
+      {isMobile && showMobileFilters ? <div className="mobile-sheet-backdrop" onClick={() => setShowMobileFilters(false)} /> : null}
+      {isMobile ? (
+        <div className={`warning-toolbar ${showMobileFilters ? 'mobile-filter-sheet' : 'mobile-collapsed'}`}>
+          {isAdmin ? (
+            <div className="field">
+              <label>按农场筛选</label>
+              <select value={farmFilter} onChange={(e) => { setFarmFilter(e.target.value); setPage(1) }}>
+                <option value="">全部</option>
+                {farms.map((f) => (
+                  <option key={f.farm_id} value={f.farm_id}>{f.farm_name}</option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+          <div className="warning-toolbar-actions">
+            <button type="button" className="btn-ghost" onClick={loadPushes} disabled={loading}>
+              刷新
+            </button>
+            <button type="button" className="btn-ghost" onClick={() => setShowMobileFilters(false)}>
+              关闭
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="warning-table-card">
         {loading && rows.length === 0 ? (
@@ -126,6 +178,47 @@ const WarningPush = () => {
             </tbody>
           </table>
         )}
+        {isMobile && !loading && rows.length > 0 ? (
+          <div className="mobile-record-list">
+            {rows.map((r) => (
+              <article key={`m-${r.push_id}`} className="mobile-record-card">
+                <div className="mobile-record-head">
+                  <div className="mobile-record-title">{r.exception_type || '异常推送'}</div>
+                  <span className={`tag ${(r.read_status === '已读' || r.read_status === 1 || r.read_status === '1') ? 'tag-normal' : 'tag-warn'}`}>
+                    {(r.read_status === '已读' || r.read_status === 1 || r.read_status === '1') ? '已读' : '未读'}
+                  </span>
+                </div>
+                <div className="mobile-record-grid">
+                  <div><span className="k">推送时间</span><span className="v">{formatMobileTime(r.push_time)}</span></div>
+                  <div><span className="k">方式</span><span className="v">{r.push_method || '—'}</span></div>
+                  <div><span className="k">接收人</span><span className="v">{r.receiver_name || r.receiver_id || '—'}</span></div>
+                  <div><span className="k">处理状态</span><span className="v">{r.handle_status || '—'}</span></div>
+                  {expandedIds.has(r.push_id) ? (
+                    <>
+                      <div className="is-full"><span className="k">农场/作物</span><span className="v">{r.farm_name} · {r.crop_name || '—'}</span></div>
+                      <div><span className="k">区域</span><span className="v">{r.plant_area || '—'}</span></div>
+                      <div className="is-full"><span className="k">详情</span><span className="v">{r.exception_detail || '—'}</span></div>
+                    </>
+                  ) : null}
+                </div>
+                <div className="mobile-record-actions">
+                  <button
+                    type="button"
+                    className="mini-btn"
+                    onClick={() => setExpandedIds((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(r.push_id)) next.delete(r.push_id)
+                      else next.add(r.push_id)
+                      return next
+                    })}
+                  >
+                    {expandedIds.has(r.push_id) ? '收起' : '更多'}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="warning-pagination">

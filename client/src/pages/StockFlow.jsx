@@ -19,6 +19,8 @@ const StockFlow = () => {
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(20)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   const [filters, setFilters] = useState({
     change_type: '',
@@ -64,6 +66,16 @@ const StockFlow = () => {
   }, [fetchList])
 
   useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) setShowMobileFilters(false)
+  }, [isMobile])
+
+  useEffect(() => {
     const run = async () => {
       if (!isAdmin) return
       try {
@@ -89,7 +101,26 @@ const StockFlow = () => {
         </div>
       </div>
 
-      <div className="filter-card">
+      {isMobile ? (
+        <div className="filter-toggle-card">
+          <div className="mobile-toolbar-actions">
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileFilters((v) => !v)}
+              title={showMobileFilters ? '收起筛选' : '展开筛选'}
+              aria-label={showMobileFilters ? '收起筛选' : '展开筛选'}
+            >
+              🔍
+            </button>
+            <div style={{ color: 'var(--cockpit-text-secondary)', fontSize: 12 }}>
+              {showMobileFilters ? '筛选条件' : '点击展开筛选'}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <div className={`filter-card ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
         <div className="filter-row">
           <div className="filter-item">
             <label>操作类型</label>
@@ -143,7 +174,14 @@ const StockFlow = () => {
             />
           </div>
           <div className="filter-actions">
-            <button className="primary-btn" type="button" onClick={() => setPage(1)}>
+            <button
+              className="primary-btn"
+              type="button"
+              onClick={() => {
+                setPage(1)
+                if (isMobile) setShowMobileFilters(false)
+              }}
+            >
               筛选
             </button>
           </div>

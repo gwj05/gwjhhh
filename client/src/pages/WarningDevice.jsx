@@ -22,6 +22,9 @@ const WarningDevice = () => {
   const [farmFilter, setFarmFilter] = useState('')
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const [expandedIds, setExpandedIds] = useState(() => new Set())
   const [toast, setToast] = useState(null)
   const showToast = (message, kind = 'success') => {
     setToast({ message, kind })
@@ -69,6 +72,12 @@ const WarningDevice = () => {
   useEffect(() => {
     loadDevices()
   }, [loadDevices])
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const openAdd = () => {
     setEditing(null)
@@ -148,6 +157,12 @@ const WarningDevice = () => {
       showToast(err.response?.data?.message || '删除失败', 'error')
     }
   }
+  const formatMobileTime = (value) => {
+    if (!value) return '—'
+    const d = new Date(value)
+    const pad = (n) => String(n).padStart(2, '0')
+    return `${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
 
   return (
     <div className="warning-module-page">
@@ -158,7 +173,7 @@ const WarningDevice = () => {
         </p>
       </div>
 
-      <div className="warning-toolbar">
+      <div className={`warning-toolbar ${isMobile ? 'mobile-collapsed' : ''}`}>
         {isAdmin ? (
           <div className="field">
             <label>农场筛选</label>
@@ -179,6 +194,43 @@ const WarningDevice = () => {
           </button>
         </div>
       </div>
+      {isMobile ? (
+        <div className="mobile-toolbar-actions">
+          <button
+            type="button"
+            className="mobile-icon-btn"
+            onClick={() => setShowMobileFilters((v) => !v)}
+            title="筛选"
+            aria-label="筛选"
+          >
+            ⚙
+          </button>
+          <button type="button" className="mobile-icon-btn" onClick={openAdd} title="新增设备" aria-label="新增设备">
+            ＋
+          </button>
+        </div>
+      ) : null}
+      {isMobile && showMobileFilters ? <div className="mobile-sheet-backdrop" onClick={() => setShowMobileFilters(false)} /> : null}
+      {isMobile ? (
+        <div className={`warning-toolbar ${showMobileFilters ? 'mobile-filter-sheet' : 'mobile-collapsed'}`}>
+          {isAdmin ? (
+            <div className="field">
+              <label>农场筛选</label>
+              <select value={farmFilter} onChange={(e) => setFarmFilter(e.target.value)}>
+                <option value="">全部</option>
+                {farms.map((f) => (
+                  <option key={f.farm_id} value={f.farm_id}>{f.farm_name}</option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+          <div className="warning-toolbar-actions">
+            <button type="button" className="btn-primary" onClick={openAdd}>新增设备</button>
+            <button type="button" className="btn-ghost" onClick={loadDevices} disabled={loading}>刷新</button>
+            <button type="button" className="btn-ghost" onClick={() => setShowMobileFilters(false)}>关闭</button>
+          </div>
+        </div>
+      ) : null}
 
       <div className="warning-table-card">
         {loading && rows.length === 0 ? (
@@ -233,6 +285,52 @@ const WarningDevice = () => {
             </tbody>
           </table>
         )}
+        {isMobile && !loading && rows.length > 0 ? (
+          <div className="mobile-record-list">
+            {rows.map((r) => (
+              <article key={`m-${r.device_id}`} className="mobile-record-card">
+                <div className="mobile-record-head">
+                  <div className="mobile-record-title">{r.device_name}</div>
+                  <span className={`badge-status ${STATUS_CLASS[r.device_status] || 'offline'}`}>{r.device_status}</span>
+                </div>
+                <div className="mobile-record-grid">
+                  <div><span className="k">农场</span><span className="v">{r.farm_name || '—'}</span></div>
+                  <div><span className="k">监控区域</span><span className="v">{r.monitor_area || '—'}</span></div>
+                  {expandedIds.has(r.device_id) ? (
+                    <>
+                      <div className="is-full"><span className="k">安装位置</span><span className="v">{r.install_location || '—'}</span></div>
+                      <div><span className="k">最近在线</span><span className="v">{formatMobileTime(r.last_online_time)}</span></div>
+                      <div><span className="k">类别</span><span className="v">{r.device_category || '—'}</span></div>
+                    </>
+                  ) : null}
+                </div>
+                <div className="mobile-record-actions">
+                  <button type="button" className="mini-btn" onClick={() => openEdit(r)}>编辑</button>
+                  <button
+                    type="button"
+                    className="mini-btn danger"
+                    onClick={() => remove(r)}
+                    disabled={isSystemEnvDevice(r)}
+                  >
+                    删除
+                  </button>
+                  <button
+                    type="button"
+                    className="mini-btn"
+                    onClick={() => setExpandedIds((prev) => {
+                      const next = new Set(prev)
+                      if (next.has(r.device_id)) next.delete(r.device_id)
+                      else next.add(r.device_id)
+                      return next
+                    })}
+                  >
+                    {expandedIds.has(r.device_id) ? '收起' : '更多'}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {modalOpen ? (

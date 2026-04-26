@@ -2,7 +2,6 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
 import Register from './pages/Register'
-import Dashboard from './pages/Dashboard'
 import HomePage from './pages/HomePage'
 import OverviewPage from './pages/OverviewPage'
 import FarmList from './pages/FarmList'
@@ -49,8 +48,8 @@ function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<Navigate to="/home" replace />} />
-            <Route path="home" element={<Dashboard />} />
+            <Route index element={<Navigate to="/homepage" replace />} />
+            <Route path="home" element={<Navigate to="/homepage" replace />} />
             <Route path="homepage" element={<HomePage />} />
             <Route path="overview" element={<OverviewPage />} />
             <Route path="farm/list" element={<FarmList />} />

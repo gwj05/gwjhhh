@@ -198,6 +198,20 @@
   letter-spacing: 0.04em;
 }
 
+.system-home-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.system-home-link:focus,
+.system-home-link:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 .logo-icon {
   font-size: 22px;
   filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.45));
@@ -236,6 +250,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-4);
+  margin-left: auto;
 }
 
 .topbar-button {
@@ -384,13 +399,77 @@
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
+  position: relative;
 }
 
 .topbar-mobile-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
+}
+
+.topbar-mobile .system-home-link {
+  grid-column: 2;
+  justify-self: center;
+  max-width: 100%;
+  min-width: 0;
+  justify-content: center;
+  text-align: center;
+}
+
+.topbar-mobile .mobile-topbar-actions {
+  grid-column: 3;
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-mobile .mobile-farm-menu-container {
+  position: relative;
+  display: inline-flex !important;
+}
+
+.topbar-mobile .mobile-farm-switch {
+  height: 38px;
+  min-height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: rgba(15, 35, 68, 0.6);
+  color: var(--cockpit-accent-soft);
+  font-size: 12px;
+  line-height: 1.1;
+  white-space: nowrap;
+  padding: 0 10px;
+  cursor: default;
+}
+
+.topbar-mobile .mobile-farm-switch.is-clickable {
+  cursor: pointer;
+}
+
+.topbar-mobile .mobile-farm-switch.is-clickable:active {
+  transform: scale(0.98);
+}
+
+.topbar-mobile .mobile-user-menu {
+  position: relative;
+}
+
+.topbar-mobile .mobile-farm-menu-container .farm-dropdown {
+  left: auto;
+  right: 0;
+  min-width: 240px;
+  max-width: min(86vw, 320px);
+}
+
+.topbar-mobile .mobile-farm-menu-container .farm-dd-name,
+.topbar-mobile .mobile-farm-menu-container .farm-dd-meta,
+.topbar-mobile .mobile-farm-menu-container .farm-dd-item {
+  white-space: normal;
+  word-break: break-word;
+  writing-mode: horizontal-tb;
 }
 
 .topbar-mobile .system-logo {

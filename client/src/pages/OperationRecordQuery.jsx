@@ -14,7 +14,6 @@ const OperationRecordQuery = () => {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
-  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [filters, setFilters] = useState({
     farm_id: '',
@@ -83,7 +82,6 @@ const OperationRecordQuery = () => {
 
   useEffect(() => {
     if (!isMobile) {
-      setShowMobileSearch(false)
       setShowMobileFilters(false)
     }
   }, [isMobile])
@@ -124,7 +122,7 @@ const OperationRecordQuery = () => {
             <button
               type="button"
               className="mobile-icon-btn"
-              onClick={() => setShowMobileSearch((v) => !v)}
+              onClick={() => setShowMobileFilters((v) => !v)}
               title="搜索"
               aria-label="搜索"
             >
@@ -139,18 +137,6 @@ const OperationRecordQuery = () => {
             >
               ⚙
             </button>
-            {showMobileSearch ? (
-              <div className="mobile-inline-search">
-                <input
-                  value={filters.area_name}
-                  onChange={(e) => setFilters((p) => ({ ...p, area_name: e.target.value, crop_id: '' }))}
-                  placeholder="输入区域关键词"
-                />
-                <button className="outline-btn mobile-search-confirm" onClick={() => setPage(1)}>
-                  查询
-                </button>
-              </div>
-            ) : null}
           </div>
         ) : null}
         <div className={`filter-row ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
@@ -238,6 +224,8 @@ const OperationRecordQuery = () => {
       <div className="table-card">
         {loading ? (
           <div className="loading">加载中...</div>
+        ) : rows.length === 0 ? (
+          <div className="loading">暂无数据</div>
         ) : (
           <table className="op-table mobile-card-table">
             <thead>
@@ -272,6 +260,26 @@ const OperationRecordQuery = () => {
             </tbody>
           </table>
         )}
+        {isMobile && !loading && rows.length > 0 ? (
+          <div className="mobile-record-list">
+            {rows.map((r) => (
+              <article key={`m-${r.record_id}`} className="mobile-record-card">
+                <div className="mobile-record-head">
+                  <div className="mobile-record-title">{r.operation_type}</div>
+                  <span className="tag tag-normal">{r.crop_name || '未知作物'}</span>
+                </div>
+                <div className="mobile-record-grid">
+                  <div><span className="k">农场</span><span className="v">{r.farm_name || '--'}</span></div>
+                  <div><span className="k">区域</span><span className="v">{r.area_name || '--'}</span></div>
+                  <div><span className="k">农资</span><span className="v">{r.operation_type === '施肥' ? (r.material_name || '--') : '--'}</span></div>
+                  <div><span className="k">操作人</span><span className="v">{r.operator_name || '--'}</span></div>
+                  <div><span className="k">操作时间</span><span className="v">{r.operation_time ? new Date(r.operation_time).toLocaleString() : '--'}</span></div>
+                  <div><span className="k">操作内容</span><span className="v">{r.operation_detail || '--'}</span></div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
 
         <div className="pagination">
           <div>

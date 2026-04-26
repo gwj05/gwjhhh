@@ -32,7 +32,6 @@ const FarmList = () => {
   const [principals, setPrincipals] = useState([])
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
-  const [showMobileSearch, setShowMobileSearch] = useState(false)
   const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [form, setForm] = useState({
     farm_name: '',
@@ -83,7 +82,6 @@ const FarmList = () => {
 
   useEffect(() => {
     if (!isMobile) {
-      setShowMobileSearch(false)
       setShowMobileFilters(false)
     }
   }, [isMobile])
@@ -258,7 +256,7 @@ const FarmList = () => {
             <button
               type="button"
               className="mobile-icon-btn"
-              onClick={() => setShowMobileSearch((v) => !v)}
+              onClick={() => setShowMobileFilters((v) => !v)}
               title="搜索"
               aria-label="搜索"
             >
@@ -273,18 +271,6 @@ const FarmList = () => {
             >
               ⚙
             </button>
-            {showMobileSearch ? (
-              <div className="mobile-inline-search">
-                <input
-                  value={filters.farm_name}
-                  onChange={(e) => setFilters((p) => ({ ...p, farm_name: e.target.value }))}
-                  placeholder="输入农场名称"
-                />
-                <button className="outline-btn mobile-search-confirm" onClick={handleSearch}>
-                  查询
-                </button>
-              </div>
-            ) : null}
           </div>
         ) : null}
         <div className={`filter-row ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
@@ -484,6 +470,42 @@ const FarmList = () => {
             )}
           </tbody>
         </table>
+        {isMobile && loading ? <div className="warning-empty">加载中...</div> : null}
+        {isMobile && !loading && farms.length === 0 ? <div className="warning-empty">暂无数据</div> : null}
+        {isMobile && !loading && farms.length > 0 ? (
+          <div className="mobile-record-list">
+            {farms.map((farm) => (
+              <article key={`m-${farm.farm_id}`} className="mobile-record-card">
+                <div className="mobile-record-head">
+                  <label className="mobile-select-check">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(farm.farm_id)}
+                      onChange={() => handleSelectOne(farm.farm_id)}
+                    />
+                  </label>
+                  <div
+                    className="mobile-record-title"
+                    onClick={() => navigate(`/farm/detail/${farm.farm_id}`)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {farm.farm_name}
+                  </div>
+                  {statusTag(farm.status)}
+                </div>
+                <div className="mobile-record-grid">
+                  <div><span className="k">负责人</span><span className="v">{farm.principal_name || '-'}</span></div>
+                  <div><span className="k">联系电话</span><span className="v">{farm.phone || '-'}</span></div>
+                </div>
+                <div className="mobile-record-actions">
+                  <button className="mini-btn" onClick={() => navigate(`/farm/detail/${farm.farm_id}`)}>详情</button>
+                  <button className="mini-btn" onClick={() => handleEdit(farm)}>编辑</button>
+                  {isAdmin ? <button className="mini-btn danger" onClick={() => handleDelete(farm.farm_id)}>删除</button> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       <div className="farm-pagination">
