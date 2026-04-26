@@ -94,8 +94,17 @@ body {
   }
 
   .main-content {
-    padding: 12px;
-    overflow-x: hidden;
+    padding: 8px;
+    overflow-x: visible;
+    margin-top: 0;
+    min-height: calc(100vh - var(--topbar-height));
+  }
+
+  .main-content > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
   }
 
   .topbar {
@@ -105,6 +114,96 @@ body {
     align-items: flex-start;
     flex-wrap: wrap;
     gap: 8px 10px;
+    position: sticky;
+    top: 0;
+    z-index: 140;
+  }
+
+  .sidebar {
+    display: block !important;
+    width: min(78vw, 296px);
+    max-width: 296px;
+    transform: translateX(-108%) !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.22s ease, visibility 0.22s ease;
+    border-right: 1px solid rgba(56, 189, 248, 0.22);
+    box-shadow: 10px 0 26px rgba(0, 0, 0, 0.45);
+    z-index: 200;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0) !important;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .sidebar-content {
+    padding: 10px 0 14px;
+  }
+
+  .sidebar-mobile-backdrop {
+    background: rgba(2, 8, 20, 0.5) !important;
+    backdrop-filter: blur(3px);
+    animation: mobileDrawerMaskFadeIn 0.22s ease;
+  }
+
+  .menu-item {
+    margin-bottom: 1px;
+  }
+
+  .menu-title {
+    margin: 0 8px;
+    padding: 10px 12px;
+    min-height: 40px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .menu-icon {
+    width: 18px;
+    margin-right: 8px;
+    font-size: 16px;
+  }
+
+  .menu-text {
+    font-weight: 600;
+  }
+
+  .menu-arrow {
+    font-size: 9px;
+  }
+
+  .menu-children {
+    margin: 3px 8px 6px;
+    padding: 4px 0;
+    border-radius: 10px;
+  }
+
+  .menu-child {
+    margin: 0 4px;
+    padding: 8px 10px 8px 34px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .menu-child.active::before {
+    left: 24px;
+  }
+
+  /* 全局点击反馈 */
+  button:active,
+  [role='button']:active,
+  .menu-title:active,
+  .menu-child:active,
+  .table-btn:active,
+  .mini-btn:active {
+    transform: scale(0.98);
+    opacity: 0.92;
   }
 
   .topbar-left,
@@ -115,6 +214,10 @@ body {
     gap: 8px;
   }
 
+  .topbar-right {
+    justify-content: flex-start;
+  }
+
   .system-logo {
     min-width: 0;
   }
@@ -122,6 +225,99 @@ body {
   .system-name {
     max-width: 64vw;
     font-size: 15px;
+  }
+
+  /* 首页/仪表盘密度优化 */
+  .homepage-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+    margin-bottom: 12px;
+  }
+
+  .dashboard-container,
+  .dashboard-main,
+  .dashboard-grid,
+  .dashboard-card-grid,
+  .farm-list-page,
+  .material-list-page,
+  .material-warning-page,
+  .warning-module-page,
+  .system-page,
+  .monitor-page,
+  .operation-page,
+  .crop-list-page,
+  .crop-cycle-page,
+  .stock-flow-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .homepage .warning-card,
+  .homepage .video-card,
+  .homepage .map-card,
+  .homepage .risk-card {
+    grid-column: span 1 !important;
+  }
+
+  .homepage .card-header {
+    padding: 10px 12px;
+  }
+
+  .homepage .card-content {
+    padding: 10px;
+  }
+
+  .homepage .weather-kpis,
+  .homepage .weather-charts,
+  .homepage .video-list,
+  .homepage .area-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .homepage .simple-chart {
+    min-height: 120px;
+  }
+
+  .homepage .kpi-value {
+    font-size: 24px;
+  }
+
+  /* 智能预测页小屏可读性 */
+  .overview-grid {
+    flex-direction: column !important;
+    gap: 12px;
+  }
+
+  .overview-col {
+    gap: 12px;
+  }
+
+  .overview-card.card-md,
+  .overview-card.card-lg {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .overview-card-body,
+  .overview-card-body.scroll-body {
+    padding: 12px;
+    overflow: visible;
+  }
+
+  .overview-kpi-row {
+    grid-template-columns: 1fr;
+  }
+
+  .overview-actions {
+    justify-content: stretch;
+  }
+
+  .overview-actions .overview-btn {
+    width: 100%;
+    text-align: center;
   }
 
   .breadcrumb {
@@ -156,14 +352,18 @@ body {
   .user-info,
   .dropdown-item,
   .farm-dd-item,
-  button,
-  [role='button'] {
+  .mobile-tab-btn,
+  .topbar-hamburger {
     min-width: 44px;
     min-height: 44px;
   }
 
   .topbar-button {
     padding: 10px 12px;
+  }
+
+  .topbar-right > .topbar-button {
+    display: none;
   }
 
   .user-name {
@@ -210,6 +410,7 @@ body {
   .table-wrap,
   .table-container,
   .table-scroll,
+  .table-card,
   .main-content table {
     width: 100%;
     max-width: 100%;
@@ -248,25 +449,43 @@ body {
   }
 
   .mobile-card-table tr {
-    margin-bottom: 12px;
-    padding: 10px;
-    border: 1px solid rgba(56, 189, 248, 0.22);
-    border-radius: 10px;
-    background: rgba(15, 35, 68, 0.72);
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border: 1px solid rgba(56, 189, 248, 0.14);
+    border-radius: 8px;
+    background: rgba(15, 35, 68, 0.56);
   }
 
   .mobile-card-table td {
     white-space: normal;
-    padding: 8px 0;
+    padding: 3px 0;
     border: 0 !important;
     overflow-wrap: anywhere;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    line-height: 1.3;
   }
 
   .mobile-card-table td::before {
     content: attr(data-label);
-    display: block;
-    font-size: 12px;
+    display: inline-flex;
+    min-width: 56px;
+    flex: 0 0 auto;
+    font-size: 11px;
     color: var(--cockpit-text-muted);
+    margin-bottom: 0;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  .mobile-card-table td[data-label='操作'] {
+    display: block;
+    padding-top: 7px;
+  }
+
+  .mobile-card-table td[data-label='操作']::before {
+    display: block;
     margin-bottom: 4px;
   }
 
@@ -281,7 +500,7 @@ body {
   .mobile-card-table .system-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
   }
 
@@ -290,10 +509,27 @@ body {
   .mobile-card-table .warning-actions .btn-danger,
   .mobile-card-table .system-actions button,
   .mobile-card-table .table-btn {
-    min-width: 44px;
-    min-height: 44px;
-    padding: 8px 10px;
+    min-width: 36px;
+    min-height: 32px;
+    padding: 5px 8px;
     line-height: 1.2;
+    font-size: 12px;
+  }
+
+  .material-list-page .row-actions,
+  .material-purchase-page .row-actions {
+    gap: 4px;
+  }
+
+  .material-list-page .mobile-card-table td,
+  .material-purchase-page .mobile-card-table td {
+    padding: 3px 0;
+    font-size: 13px;
+  }
+
+  .material-list-page .mobile-card-table tr,
+  .material-purchase-page .mobile-card-table tr {
+    padding: 7px 8px;
   }
 
   .mobile-card-table .tag,
@@ -315,6 +551,29 @@ body {
     overflow-wrap: anywhere;
   }
 
+  /* 修复“信息看不到”：解除移动端关键文本截断 */
+  .u-v,
+  .u-alert-time,
+  .u-alert-rel,
+  .u-alert-detail,
+  .overview-reco-item .name,
+  .growth-name,
+  .video-name,
+  .farm-dd-name,
+  .farm-dd-meta,
+  .user-name,
+  .system-name {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .u-alert-lines {
+    grid-template-columns: 1fr !important;
+  }
+
   /* 分页和批量操作条在手机端换行更自然 */
   .pagination,
   .warning-pagination,
@@ -323,7 +582,7 @@ body {
   .batch-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
     align-items: center;
   }
 
@@ -331,7 +590,7 @@ body {
   .batch-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: 6px;
   }
 
   /* 表单内并排项在手机端纵向显示 */
@@ -346,6 +605,174 @@ body {
   .range-separator,
   .filter-sep {
     display: none;
+  }
+
+  /* 筛选区和头部操作区：手机端纵向排布 */
+  .warning-toolbar,
+  .system-filter,
+  .filter-row {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .warning-toolbar-actions,
+  .filter-actions,
+  .farm-manager-actions,
+  .system-header,
+  .op-header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .warning-toolbar-actions > *,
+  .filter-actions > *,
+  .farm-manager-actions > *,
+  .system-header > button,
+  .op-header > button {
+    flex: 1 1 140px;
+  }
+
+  .material-list-page .filter-actions,
+  .material-purchase-page .filter-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .material-list-page .filter-actions > *,
+  .material-purchase-page .filter-actions > * {
+    flex: 0 0 auto;
+    min-width: 92px;
+  }
+
+  .mobile-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .mobile-icon-btn {
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    background: rgba(12, 34, 64, 0.82);
+    color: var(--cockpit-text);
+    border-radius: 10px;
+    min-width: 36px;
+    min-height: 36px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-inline-search {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .mobile-inline-search input {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .mobile-search-confirm {
+    min-height: 36px;
+    min-width: 56px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .mobile-collapsed {
+    display: none !important;
+  }
+
+  /* 弹窗适配 */
+  .modal,
+  .warning-modal-overlay,
+  .sys-modal-mask,
+  .modal-backdrop {
+    padding: 10px !important;
+    align-items: flex-start !important;
+    overflow-y: auto;
+  }
+
+  .modal-panel,
+  .warning-modal,
+  .sys-modal,
+  .modal-content {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    border-radius: 8px;
+    padding: 10px !important;
+    margin: 10px 0;
+  }
+
+  .modal-footer,
+  .form-actions,
+  .warning-modal-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .modal-footer > *,
+  .form-actions > *,
+  .warning-modal-footer > * {
+    flex: 1 1 120px;
+  }
+
+  /* 整体“降框感”：常见容器统一更轻 */
+  .homepage-card,
+  .overview-card,
+  .system-card,
+  .filter-card,
+  .table-card,
+  .warning-table-card,
+  .warning-toolbar,
+  .farm-filter-panel,
+  .farm-table-wrapper,
+  .stock-flow-page .filter-card,
+  .stock-flow-page .table-card,
+  .material-list-page .material-filter-card,
+  .material-list-page .table-card,
+  .material-warning-page .warning-filter-card {
+    border-radius: 8px !important;
+    border-width: 1px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+  }
+
+  .system-card,
+  .filter-card,
+  .table-card,
+  .warning-table-card,
+  .warning-toolbar,
+  .farm-filter-panel,
+  .farm-table-wrapper,
+  .material-list-page .material-filter-card,
+  .material-list-page .table-card,
+  .material-warning-page .warning-filter-card {
+    padding: 10px !important;
+  }
+}
+
+@keyframes mobileDrawerMaskFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 

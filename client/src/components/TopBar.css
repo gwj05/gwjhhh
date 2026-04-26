@@ -375,3 +375,42 @@
   box-shadow: var(--shadow-md), 0 0 20px rgba(34, 211, 238, 0.2);
   pointer-events: none;
 }
+
+.topbar-mobile {
+  height: auto;
+  min-height: 88px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.topbar-mobile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.topbar-mobile .system-logo {
+  flex: 1;
+  min-width: 0;
+}
+
+.topbar-mobile .system-name {
+  font-size: 15px;
+}
+
+.topbar-mobile .user-info {
+  padding: 0;
+  min-width: 44px;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.topbar-mobile .global-farm-indicator {
+  width: 100%;
+  min-height: 44px;
+  justify-content: flex-start;
+}

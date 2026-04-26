@@ -45,6 +45,9 @@ const WarningException = () => {
   const [handleStatus, setHandleStatus] = useState('')
   const [exceptionType, setExceptionType] = useState('')
   const [sourceType, setSourceType] = useState('')
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   const [page, setPage] = useState(1)
   const [pageSize] = useState(10)
@@ -103,6 +106,19 @@ const WarningException = () => {
   useEffect(() => {
     loadList()
   }, [loadList])
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowMobileSearch(false)
+      setShowMobileFilters(false)
+    }
+  }, [isMobile])
 
   const loadCropsForFarm = async (farmId) => {
     if (!farmId) {
@@ -203,6 +219,41 @@ const WarningException = () => {
       </div>
 
       <div className="warning-toolbar">
+        {isMobile ? (
+          <div className="mobile-toolbar-actions">
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileSearch((v) => !v)}
+              title="搜索"
+              aria-label="搜索"
+            >
+              🔍
+            </button>
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileFilters((v) => !v)}
+              title="筛选"
+              aria-label="筛选"
+            >
+              ⚙
+            </button>
+            {showMobileSearch ? (
+              <div className="mobile-inline-search">
+                <input
+                  value={exceptionType}
+                  onChange={(e) => { setExceptionType(e.target.value); setPage(1) }}
+                  placeholder="输入异常类型关键词"
+                />
+                <button className="outline-btn mobile-search-confirm" onClick={() => setPage(1)}>
+                  查询
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        <div className={isMobile && !showMobileFilters ? 'mobile-collapsed' : ''} style={{ display: 'contents' }}>
         {isAdmin ? (
           <div className="field">
             <label>农场</label>
@@ -244,6 +295,7 @@ const WarningException = () => {
         <div className="warning-toolbar-actions">
           <Button variant="primary" onClick={openManual}>手动登记异常</Button>
           <Button variant="ghost" onClick={loadList} disabled={loading}>刷新</Button>
+        </div>
         </div>
       </div>
 

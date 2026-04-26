@@ -13,6 +13,9 @@ const OperationRecordQuery = () => {
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [filters, setFilters] = useState({
     farm_id: '',
     area_name: '',
@@ -72,6 +75,19 @@ const OperationRecordQuery = () => {
     fetchList()
   }, [fetchList])
 
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowMobileSearch(false)
+      setShowMobileFilters(false)
+    }
+  }, [isMobile])
+
   const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [total, pageSize])
 
   return (
@@ -103,7 +119,41 @@ const OperationRecordQuery = () => {
       </div>
 
       <div className="filter-card">
-        <div className="filter-row">
+        {isMobile ? (
+          <div className="mobile-toolbar-actions">
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileSearch((v) => !v)}
+              title="搜索"
+              aria-label="搜索"
+            >
+              🔍
+            </button>
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileFilters((v) => !v)}
+              title="筛选"
+              aria-label="筛选"
+            >
+              ⚙
+            </button>
+            {showMobileSearch ? (
+              <div className="mobile-inline-search">
+                <input
+                  value={filters.area_name}
+                  onChange={(e) => setFilters((p) => ({ ...p, area_name: e.target.value, crop_id: '' }))}
+                  placeholder="输入区域关键词"
+                />
+                <button className="outline-btn mobile-search-confirm" onClick={() => setPage(1)}>
+                  查询
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        <div className={`filter-row ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
           {isAdmin && (
             <div className="filter-item">
               <label>农场</label>

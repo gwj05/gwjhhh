@@ -43,6 +43,9 @@ const MaterialList = () => {
 
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
 
   const toast = useToast()
 
@@ -79,6 +82,19 @@ const MaterialList = () => {
   useEffect(() => {
     fetchMaterials()
   }, [fetchMaterials])
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowMobileSearch(false)
+      setShowMobileFilters(false)
+    }
+  }, [isMobile])
 
   // ---- 表单/弹窗 ----
   const [formModalOpen, setFormModalOpen] = useState(false)
@@ -381,7 +397,42 @@ const MaterialList = () => {
       </div>
 
       <div className="material-filter-card">
-        <div className="filter-row">
+        {isMobile ? (
+          <div className="mobile-toolbar-actions">
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileSearch((v) => !v)}
+              title="搜索"
+              aria-label="搜索"
+            >
+              🔍
+            </button>
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileFilters((v) => !v)}
+              title="筛选"
+              aria-label="筛选"
+            >
+              ⚙
+            </button>
+            {showMobileSearch ? (
+              <div className="mobile-inline-search">
+                <input
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  placeholder="输入农资名称"
+                />
+                <button className="outline-btn mobile-search-confirm" onClick={() => setPage(1)}>
+                  查询
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div className={`filter-row ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
           <div className="filter-item">
             <label>农资名称：</label>
             <input

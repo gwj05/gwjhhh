@@ -31,6 +31,9 @@ const FarmList = () => {
   const [formSubmitting, setFormSubmitting] = useState(false)
   const [principals, setPrincipals] = useState([])
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 768)
+  const [showMobileSearch, setShowMobileSearch] = useState(false)
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
   const [form, setForm] = useState({
     farm_name: '',
     address: '',
@@ -71,6 +74,19 @@ const FarmList = () => {
     fetchFarms(false)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize, sortField, sortOrder])
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 768)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  useEffect(() => {
+    if (!isMobile) {
+      setShowMobileSearch(false)
+      setShowMobileFilters(false)
+    }
+  }, [isMobile])
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target
@@ -237,7 +253,41 @@ const FarmList = () => {
       </div>
 
       <div className="farm-filter-panel">
-        <div className="filter-row">
+        {isMobile ? (
+          <div className="mobile-toolbar-actions">
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileSearch((v) => !v)}
+              title="搜索"
+              aria-label="搜索"
+            >
+              🔍
+            </button>
+            <button
+              type="button"
+              className="mobile-icon-btn"
+              onClick={() => setShowMobileFilters((v) => !v)}
+              title="筛选"
+              aria-label="筛选"
+            >
+              ⚙
+            </button>
+            {showMobileSearch ? (
+              <div className="mobile-inline-search">
+                <input
+                  value={filters.farm_name}
+                  onChange={(e) => setFilters((p) => ({ ...p, farm_name: e.target.value }))}
+                  placeholder="输入农场名称"
+                />
+                <button className="outline-btn mobile-search-confirm" onClick={handleSearch}>
+                  查询
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        <div className={`filter-row ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
           <div className="filter-item">
             <label>农场名称：</label>
             <input

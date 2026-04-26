@@ -5,7 +5,7 @@ import api from '../utils/api'
 import { GLOBAL_FARM_CHANGED_EVENT } from '../utils/globalFarm'
 import { getBreadcrumbs } from '../routes/routeConfig'
 import './TopBar.css'
-const TopBar = ({ onToggleSidebar = () => {} }) => {
+const TopBar = ({ onToggleSidebar = () => {}, mobile = false }) => {
   const { user, logout, currentFarmId, currentFarmName, switchGlobalFarm } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -99,6 +99,81 @@ const TopBar = ({ onToggleSidebar = () => {} }) => {
   const onPickFarm = (farmId, farmName) => {
     switchGlobalFarm(farmId, farmName || '')
     setShowFarmMenu(false)
+  }
+
+  if (mobile) {
+    return (
+      <div className="topbar topbar-mobile">
+        <div className="topbar-mobile-row">
+          <button
+            type="button"
+            className="topbar-hamburger"
+            onClick={onToggleSidebar}
+            aria-label="打开导航菜单"
+            title="菜单"
+          >
+            ☰
+          </button>
+          <div className="system-logo">
+            <span className="logo-icon">🌾</span>
+            <span className="system-name">智慧农业管理系统</span>
+          </div>
+          <div className="user-menu-container">
+            <div className="user-info" onClick={() => setShowUserMenu(!showUserMenu)}>
+              <span className="user-avatar">{user.real_name.charAt(0)}</span>
+            </div>
+            {showUserMenu && (
+              <div className="user-dropdown">
+                <div className="dropdown-item" onClick={() => handleUserMenuClick('profile')}>个人信息</div>
+                <div className="dropdown-item" onClick={() => handleUserMenuClick('password')}>修改密码</div>
+                <div className="dropdown-divider"></div>
+                <div className="dropdown-item logout" onClick={() => handleUserMenuClick('logout')}>退出登录</div>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className={`farm-menu-container ${user.role_id === 1 ? 'is-admin' : ''}`}>
+          <button
+            type="button"
+            className={`global-farm-indicator ${user.role_id === 1 ? 'is-clickable' : ''}`}
+            onClick={openFarmMenu}
+            title={user.role_id === 1 ? '点击切换全局农场' : '当前农场'}
+          >
+            <span className="farm-pin" aria-hidden="true">📍</span>
+            <span className="farm-label">当前农场</span>
+            <strong className="farm-name">{farmDisplayName}</strong>
+            {user.role_id === 1 ? <span className={`farm-arrow ${showFarmMenu ? 'expanded' : ''}`}>▼</span> : null}
+          </button>
+          {user.role_id === 1 && showFarmMenu ? (
+            <div className="farm-dropdown">
+              <button type="button" className="farm-dd-item" onClick={() => onPickFarm('', '')}>
+                <span className="farm-dd-name">全部农场</span>
+                <span className="farm-dd-meta">查看所有农场数据</span>
+              </button>
+              <div className="farm-dd-divider" />
+              {farmLoading ? (
+                <div className="farm-dd-loading">加载中...</div>
+              ) : farmOptions.length === 0 ? (
+                <div className="farm-dd-empty">暂无可选农场</div>
+              ) : (
+                farmOptions.map((f) => (
+                  <button
+                    key={f.farm_id}
+                    type="button"
+                    className={`farm-dd-item ${String(currentFarmId) === String(f.farm_id) ? 'active' : ''}`}
+                    onClick={() => onPickFarm(f.farm_id, f.farm_name)}
+                  >
+                    <span className="farm-dd-name">{f.farm_name}</span>
+                    <span className="farm-dd-meta">{f.address || `农场#${f.farm_id}`}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : null}
+        </div>
+        {farmToast ? <div className="farm-switch-toast">{farmToast}</div> : null}
+      </div>
+    )
   }
 
   return (
