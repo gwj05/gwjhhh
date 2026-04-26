@@ -114,7 +114,7 @@ const StockFlow = () => {
               🔍
             </button>
             <div style={{ color: 'var(--cockpit-text-secondary)', fontSize: 12 }}>
-              {showMobileFilters ? '筛选条件' : '点击展开筛选'}
+              {showMobileFilters ? '搜索条件' : '点击展开搜索'}
             </div>
           </div>
         </div>

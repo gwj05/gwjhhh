@@ -200,10 +200,10 @@ const WarningDevice = () => {
             type="button"
             className="mobile-icon-btn"
             onClick={() => setShowMobileFilters((v) => !v)}
-            title="筛选"
-            aria-label="筛选"
+            title="搜索"
+            aria-label="搜索"
           >
-            ⚙
+            🔍
           </button>
           <button type="button" className="mobile-icon-btn" onClick={openAdd} title="新增设备" aria-label="新增设备">
             ＋

@@ -441,15 +441,6 @@ const CropList = () => {
           >
             🔍
           </button>
-          <button
-            type="button"
-            className="mobile-icon-btn"
-            onClick={() => setShowMobileFilters((v) => !v)}
-            title="筛选"
-            aria-label="筛选"
-          >
-            ⚙
-          </button>
         </div>
       ) : null}
       {isMobile && showMobileFilters ? <div className="mobile-sheet-backdrop" onClick={() => setShowMobileFilters(false)} /> : null}

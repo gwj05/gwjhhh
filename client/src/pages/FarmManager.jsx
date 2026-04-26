@@ -389,10 +389,10 @@ const FarmManager = () => {
                 type="button"
                 className="mobile-icon-btn"
                 onClick={() => setShowMobileFiltersList((v) => !v)}
-                title="筛选"
-                aria-label="筛选"
+                title="搜索"
+                aria-label="搜索"
               >
-                ⚙
+                🔍
               </button>
             </div>
           ) : null}
@@ -676,10 +676,10 @@ const FarmManager = () => {
                 type="button"
                 className="mobile-icon-btn"
                 onClick={() => setShowMobileFiltersLogs((v) => !v)}
-                title="筛选"
-                aria-label="筛选"
+                title="搜索"
+                aria-label="搜索"
               >
-                ⚙
+                🔍
               </button>
             </div>
           ) : null}

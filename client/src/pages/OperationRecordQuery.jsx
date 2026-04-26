@@ -128,15 +128,6 @@ const OperationRecordQuery = () => {
             >
               🔍
             </button>
-            <button
-              type="button"
-              className="mobile-icon-btn"
-              onClick={() => setShowMobileFilters((v) => !v)}
-              title="筛选"
-              aria-label="筛选"
-            >
-              ⚙
-            </button>
           </div>
         ) : null}
         <div className={`filter-row ${isMobile && !showMobileFilters ? 'mobile-collapsed' : ''}`}>
